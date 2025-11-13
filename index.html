@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GlassyCart — Shop the Future</title>
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="bg-orbs" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+  </div>
+
+  <header class="glass header">
+    <div class="header-left">
+      <button class="icon-btn" id="navToggle" aria-label="Open menu">
+        <span class="i i-menu"></span>
+      </button>
+      <a href="#" class="brand">
+        <span class="brand-logo">◎</span>
+        <span class="brand-name">GlassyCart</span>
+      </a>
+    </div>
+
+    <div class="header-center">
+      <div class="search glass" role="search">
+        <input id="searchInput" type="search" placeholder="Search for products, brands and more..." aria-label="Search" autocomplete="off" />
+        <button id="searchBtn" class="btn pill">
+          <span class="i i-search"></span>
+          <span>Search</span>
+        </button>
+        <div id="searchSuggest" class="suggest glass hidden" role="listbox" aria-label="Search suggestions"></div>
+      </div>
+    </div>
+
+    <nav class="header-right">
+      <button class="icon-btn" id="wishlistBtn" aria-label="Wishlist">
+        <span class="i i-heart"></span>
+        <span class="badge" id="wishCount">0</span>
+      </button>
+      <button class="icon-btn" id="cartBtn" aria-label="Cart">
+        <span class="i i-cart"></span>
+        <span class="badge" id="cartCount">0</span>
+      </button>
+      <button class="icon-btn" id="userBtn" aria-label="Account">
+        <span class="i i-user"></span>
+      </button>
+    </nav>
+  </header>
+
+  <aside class="side-drawer glass" id="sideDrawer" aria-hidden="true">
+    <div class="drawer-header">
+      <h3>Browse</h3>
+      <button class="icon-btn" id="closeDrawer" aria-label="Close menu"><span class="i i-close"></span></button>
+    </div>
+    <ul class="drawer-links">
+      <li><a data-route="home" href="#">Home</a></li>
+      <li><a data-route="search" href="#">Categories</a></li>
+      <li><a data-route="orders" href="#">Orders</a></li>
+      <li><a data-route="wishlist" href="#">Wishlist</a></li>
+      <li><a data-route="profile" href="#">Account</a></li>
+      <li><a data-route="help" href="#">Help & Support</a></li>
+      <li class="separator"></li>
+      <li><a data-route="seller" href="#">Sell on GlassyCart</a></li>
+    </ul>
+  </aside>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-inner glass">
+        <h1>Shop in <span class="accent">glass</span> style</h1>
+        <p>Transparent, fast, and delightful. Discover trends with immersive, glassy product cards and buttery animations.</p>
+        <div class="hero-cta">
+          <button class="btn primary" data-route="search">Explore Deals</button>
+          <button class="btn ghost" data-route="home">New Arrivals</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Promo rail -->
+    <section class="rail">
+      <article class="promo glass">
+        <div class="promo-body">
+          <h3>Lightning Deals</h3>
+          <p>Up to 60% off electronics. Limited time only.</p>
+        </div>
+        <button class="chip">Shop Now</button>
+      </article>
+      <article class="promo glass">
+        <div class="promo-body">
+          <h3>Fashion Fest</h3>
+          <p>Fresh drops with free returns.</p>
+        </div>
+        <button class="chip">View</button>
+      </article>
+      <article class="promo glass">
+        <div class="promo-body">
+          <h3>Home & Kitchen</h3>
+          <p>Essentials with next-day delivery.</p>
+        </div>
+        <button class="chip">Browse</button>
+      </article>
+    </section>
+
+    <!-- Product grid -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Featured Products</h2>
+        <div class="section-actions">
+          <button class="chip" data-sort="trending">Trending</button>
+          <button class="chip" data-sort="rating">Top Rated</button>
+          <button class="chip" data-sort="price-asc">Price: Low to High</button>
+          <button class="chip" data-sort="price-desc">Price: High to Low</button>
+        </div>
+      </div>
+      <div id="productGrid" class="grid products"></div>
+    </section>
+
+    <!-- Recommended rail -->
+    <section class="section">
+      <div class="section-head">
+        <h2>Recommended for you</h2>
+      </div>
+      <div id="recoRail" class="rail cards"></div>
+    </section>
+
+    <!-- Drawers / Modals -->
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-panel glass">
+        <div class="modal-head">
+          <h3 id="modalTitle">Title</h3>
+          <button class="icon-btn" id="closeModal" aria-label="Close dialog"><span class="i i-close"></span></button>
+        </div>
+        <div id="modalBody" class="modal-body"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer glass">
+    <div class="footer-grid">
+      <div>
+        <h4>GlassyCart</h4>
+        <p>Made with love for speed and clarity.</p>
+      </div>
+      <div>
+        <h5>Help</h5>
+        <ul>
+          <li><a data-route="help" href="#">Customer Care</a></li>
+          <li><a data-route="help" href="#">Returns</a></li>
+          <li><a data-route="help" href="#">Shipping</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Account</h5>
+        <ul>
+          <li><a data-route="orders" href="#">Orders</a></li>
+          <li><a data-route="wishlist" href="#">Wishlist</a></li>
+          <li><a data-route="profile" href="#">Addresses</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Sell</h5>
+        <ul>
+          <li><a data-route="seller" href="#">Become a Seller</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="small">© 2025 GlassyCart</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
