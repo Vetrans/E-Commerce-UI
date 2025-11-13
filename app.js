@@ -1,4 +1,8 @@
-// Mock data and state
+// Motion helpers (natural easing, stagger)
+const EASE = 'cubic-bezier(.2,.7,.2,1)';
+const currency = (n) => `₹${n.toLocaleString("en-IN")}`;
+
+// State
 const state = {
   products: [],
   cart: [],
@@ -6,30 +10,29 @@ const state = {
   user: null,
   addresses: [],
   orders: [],
-  searchIndex: [],
-  suggestions: ["iphone", "laptop", "headphones", "air fryer", "sneakers", "t-shirts", "smartwatch", "sofa"],
+  suggestions: ["iphone 15", "ultrabook", "noise cancel", "air fryer", "sneakers", "t-shirts", "smartwatch", "sofa", "gaming mouse", "true wireless"],
+  tags: ["Deals", "Under ₹999", "Same‑day", "Top rated", "Bluetooth 5.3", "4K"],
 };
 
-const currency = (n) => `₹${n.toLocaleString("en-IN")}`;
-
-// Seed products with Amazon/Flipkart-like attributes
+// Seed products
 function seedProducts() {
   const base = [
     { id: "p1", title: "Aurora Wireless Headphones", brand: "Auralite", category: "Audio", price: 3499, mrp: 5999, rating: 4.4, reviews: 812, badge: "Deal", images: ["https://picsum.photos/seed/aurora1/800/600","https://picsum.photos/seed/aurora2/800/600","https://picsum.photos/seed/aurora3/800/600"], specs: { "Battery": "40 hrs", "Noise Cancel": "Yes", "BT": "5.3" }, fbt: ["p3","p6"] },
-    { id: "p2", title: "Nimbus Pro Laptop 14”", brand: "Nimbus", category: "Computers", price: 58990, mrp: 74990, rating: 4.6, reviews: 214, badge: "Top rated", images: ["https://picsum.photos/seed/nimbus1/800/600","https://picsum.photos/seed/nimbus2/800/600"], specs: { "CPU": "Ryzen 7", "RAM": "16 GB", "SSD": "1 TB NVMe" }, fbt: ["p7"] },
-    { id: "p3", title: "Flux Smartwatch S2", brand: "Flux", category: "Wearables", price: 4999, mrp: 7999, rating: 4.2, reviews: 1503, images: ["https://picsum.photos/seed/flux1/800/600"], specs: { "AMOLED": "1.8 in", "GPS": "Dual-band", "IP": "68" }, fbt: ["p1"] },
+    { id: "p2", title: "Nimbus Pro Laptop 14”", brand: "Nimbus", category: "Computers", price: 58990, mrp: 74990, rating: 4.6, reviews: 214, badge: "Top", images: ["https://picsum.photos/seed/nimbus1/800/600","https://picsum.photos/seed/nimbus2/800/600"], specs: { "CPU": "Ryzen 7", "RAM": "16 GB", "SSD": "1 TB NVMe" }, fbt: ["p7"] },
+    { id: "p3", title: "Flux Smartwatch S2", brand: "Flux", category: "Wearables", price: 4999, mrp: 7999, rating: 4.2, reviews: 1503, images: ["https://picsum.photos/seed/flux1/800/600"], specs: { "AMOLED": "1.8 in", "GPS": "Dual‑band", "IP": "68" }, fbt: ["p1"] },
     { id: "p4", title: "Breeze Air Fryer 5L", brand: "KitchPro", category: "Home & Kitchen", price: 6990, mrp: 9990, rating: 4.1, reviews: 968, images: ["https://picsum.photos/seed/air1/800/600"], specs: { "Capacity": "5 L", "Wattage": "1500 W", "Modes": "8" } },
     { id: "p5", title: "Zen Sneakers V", brand: "Stride", category: "Fashion", price: 2990, mrp: 3990, rating: 4.0, reviews: 432, images: ["https://picsum.photos/seed/zen1/800/600"] },
     { id: "p6", title: "Echo Soundbar 120W", brand: "HomeBeat", category: "Audio", price: 10990, mrp: 14990, rating: 4.3, reviews: 990, images: ["https://picsum.photos/seed/echo1/800/600"] },
     { id: "p7", title: "Nimbus USB‑C Dock", brand: "Nimbus", category: "Computers", price: 3490, mrp: 4990, rating: 4.5, reviews: 78, images: ["https://picsum.photos/seed/dock1/800/600"] },
     { id: "p8", title: "Luma LED Desk Lamp", brand: "Luma", category: "Home & Kitchen", price: 1290, mrp: 1990, rating: 4.2, reviews: 356, images: ["https://picsum.photos/seed/lamp1/800/600"] },
+    { id: "p9", title: "PixelView 4K Monitor 27”", brand: "ViewMax", category: "Computers", price: 18990, mrp: 25990, rating: 4.4, reviews: 624, images: ["https://picsum.photos/seed/monitor1/800/600"] },
+    { id: "p10", title: "AeroFit Running Tee", brand: "Aero", category: "Fashion", price: 799, mrp: 1299, rating: 4.1, reviews: 1120, images: ["https://picsum.photos/seed/tee1/800/600"] },
   ];
   state.products = base;
-  state.searchIndex = base.map(p => ({ id: p.id, q: `${p.title} ${p.brand} ${p.category}`.toLowerCase() }));
 }
 
-function persist() {
-  localStorage.setItem("glassy_state", JSON.stringify({
+function persist(){
+  localStorage.setItem("ultraglass_state", JSON.stringify({
     cart: state.cart,
     wishlist: state.wishlist,
     user: state.user,
@@ -37,28 +40,29 @@ function persist() {
     orders: state.orders
   }));
 }
-
-function restore() {
+function restore(){
   seedProducts();
-  const raw = localStorage.getItem("glassy_state");
-  if (!raw) return;
-  try {
+  const raw = localStorage.getItem("ultraglass_state");
+  if(!raw) return;
+  try{
     const saved = JSON.parse(raw);
-    Object.assign(state, saved, { products: state.products, searchIndex: state.searchIndex });
-  } catch { /* noop */ }
+    Object.assign(state, saved, { products: state.products });
+  }catch{}
 }
 
-function qs(sel, root=document){ return root.querySelector(sel); }
-function qsa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
+// DOM helpers
+const qs = (s, r=document)=> r.querySelector(s);
+const qsa = (s, r=document)=> Array.from(r.querySelectorAll(s));
 
-// UI builders
-function productCard(p){
+// Product card
+function productCard(p, idx=0){
   const el = document.createElement("article");
-  el.className = "card";
+  el.className = "card glass";
+  el.style.animation = `staggerUp 600ms ${EASE} ${idx*40}ms both`;
   el.innerHTML = `
     <div class="card-media">
       <img src="${p.images[0]}" alt="${p.title}" loading="lazy"/>
-      ${p.badge ? `<span class="chip" style="position:absolute;left:10px;top:10px;background:#2f7af8;color:#fff">${p.badge}</span>` : ""}
+      ${p.badge ? `<span class="chip badge-chip">${p.badge}</span>` : ""}
     </div>
     <div class="card-body">
       <h3 class="card-title">${p.title}</h3>
@@ -66,39 +70,36 @@ function productCard(p){
       <div class="price">${currency(p.price)} <span class="mrp">${currency(p.mrp)}</span></div>
     </div>
     <div class="card-actions">
-      <button class="btn add" data-id="${p.id}"><span class="i i-cart"></span>Add to cart</button>
-      <button class="btn heart" data-id="${p.id}" aria-label="Add to wishlist"><span class="i i-heart"></span></button>
+      <button class="btn add" data-id="${p.id}"><span class="i i-cart"></span>Add</button>
+      <button class="btn heart" data-id="${p.id}" aria-label="Wishlist"><span class="i i-heart"></span></button>
       <button class="chip" data-view="${p.id}">View</button>
     </div>
   `;
+  requestAnimationFrame(()=> el.classList.add("in"));
   return el;
 }
 
 function renderGrid(list){
   const grid = qs("#productGrid");
   grid.innerHTML = "";
-  list.forEach(p => grid.appendChild(productCard(p)));
+  list.forEach((p, i)=> grid.appendChild(productCard(p, i)));
 }
 
 function renderReco(){
   const rail = qs("#recoRail");
   rail.innerHTML = "";
-  const picks = state.products.slice().sort((a,b)=>b.rating-a.rating).slice(0,6);
+  const picks = state.products.slice().sort((a,b)=>b.rating-a.rating).slice(0,8);
   picks.forEach(p=>{
     const el = document.createElement("div");
-    el.className = "card";
+    el.className = "card glass";
     el.style.minWidth = "240px";
     el.innerHTML = `
       <div class="card-media"><img src="${p.images[0]}" alt="${p.title}" /></div>
-      <div class="card-body">
-        <div class="card-title">${p.title}</div>
-        <div class="price">${currency(p.price)}</div>
-      </div>
-      <div class="card-actions">
-        <button class="chip" data-view="${p.id}">View</button>
-      </div>
+      <div class="card-body"><div class="card-title">${p.title}</div><div class="price">${currency(p.price)}</div></div>
+      <div class="card-actions"><button class="chip" data-view="${p.id}">View</button></div>
     `;
     rail.appendChild(el);
+    requestAnimationFrame(()=> el.classList.add("in"));
   });
 }
 
@@ -111,18 +112,19 @@ function sortProducts(key){
   renderGrid(arr);
 }
 
+// Counts
 function setBadgeCounts(){
   qs("#cartCount").textContent = state.cart.reduce((s,i)=>s+i.qty,0);
   qs("#wishCount").textContent = state.wishlist.length;
 }
 
-// Modal and Product Detail
+// Modal
 function openModal(title, node){
-  const modal = qs("#modal");
   qs("#modalTitle").textContent = title;
   const body = qs("#modalBody");
   body.innerHTML = "";
   body.appendChild(node);
+  const modal = qs("#modal");
   modal.classList.remove("hidden");
   document.body.style.overflow = "hidden";
 }
@@ -131,6 +133,7 @@ function closeModal(){
   document.body.style.overflow = "";
 }
 
+// Product detail with cinematic zoom hover
 function productDetail(p){
   const wrap = document.createElement("div");
   wrap.className = "product-detail";
@@ -138,22 +141,19 @@ function productDetail(p){
   const specs = p.specs ? Object.entries(p.specs).map(([k,v])=>`<li><strong>${k}:</strong> ${v}</li>`).join("") : "<li>No specs</li>";
   const fbt = (p.fbt||[]).map(id=>state.products.find(x=>x.id===id)).filter(Boolean);
   wrap.innerHTML = `
-    <div class="p-gallery">
+    <div class="p-gallery" id="pg">
       <div class="main"><img id="pMainImg" src="${p.images[0]}" alt="${p.title} main"/></div>
       <div class="thumbs">${thumbs}</div>
     </div>
     <div class="p-info">
       <h2 class="p-title">${p.title}</h2>
-      <div class="p-meta">
-        <span>Brand: ${p.brand}</span>
-        <span>Category: ${p.category}</span>
-      </div>
+      <div class="p-meta"><span>Brand: ${p.brand}</span><span>Category: ${p.category}</span></div>
       <div class="rating">★ ${p.rating} • ${p.reviews.toLocaleString()} reviews</div>
       <div class="price">${currency(p.price)} <span class="mrp">${currency(p.mrp)}</span></div>
       <div class="p-cta">
         <button class="btn primary" data-buy="${p.id}">Buy Now</button>
         <button class="btn add" data-id="${p.id}"><span class="i i-cart"></span>Add to cart</button>
-        <button class="btn heart" data-id="${p.id}" aria-label="Add to wishlist"><span class="i i-heart"></span></button>
+        <button class="btn heart" data-id="${p.id}" aria-label="Wishlist"><span class="i i-heart"></span></button>
       </div>
       <div class="p-sections">
         <div class="p-section">
@@ -164,7 +164,7 @@ function productDetail(p){
           <h4>Frequently bought together</h4>
           <div class="rail cards">
             ${fbt.map(fp=>`
-              <div class="card" style="min-width:220px">
+              <div class="card glass" style="min-width:220px">
                 <div class="card-media"><img src="${fp.images[0]}" alt="${fp.title}" /></div>
                 <div class="card-body"><div class="card-title">${fp.title}</div><div class="price">${currency(fp.price)}</div></div>
                 <div class="card-actions">
@@ -177,16 +177,18 @@ function productDetail(p){
         </div>
         <div class="p-section">
           <h4>Reviews</h4>
-          <p class="small">Verified purchase badges, helpful votes, and media upload UI can be added here.</p>
+          <p class="small">Verified reviews, helpful votes, and media upload UI can be added later.</p>
         </div>
         <div class="p-section">
           <h4>Q&A</h4>
-          <p class="small">Ask seller, get answers, and vote helpfulness.</p>
+          <p class="small">Ask questions and get answers from buyers and sellers.</p>
         </div>
       </div>
     </div>
   `;
-  // Gallery interaction
+  const pg = qs("#pg", wrap);
+  pg.addEventListener("mouseenter", ()=> pg.classList.add("zoom"));
+  pg.addEventListener("mouseleave", ()=> pg.classList.remove("zoom"));
   wrap.querySelectorAll(".thumbs img").forEach(img=>{
     img.addEventListener("click", ()=>{
       qs("#pMainImg", wrap).src = img.src;
@@ -197,30 +199,29 @@ function productDetail(p){
   return wrap;
 }
 
-// Cart, Checkout, Orders
+// Cart
 function addToCart(id, qty=1){
-  const p = state.products.find(x=>x.id===id);
-  if(!p) return;
+  const p = state.products.find(x=>x.id===id); if(!p) return;
   const item = state.cart.find(x=>x.id===id);
   if(item) item.qty += qty; else state.cart.push({ id, qty, price: p.price });
   setBadgeCounts(); persist();
-  microToast(`${p.title} added to cart`);
+  microToast(`Added to cart`);
+  pulseCart();
 }
 function addToWishlist(id){
   if(!state.wishlist.includes(id)) state.wishlist.push(id);
-  setBadgeCounts(); persist();
-  microToast("Added to wishlist");
+  setBadgeCounts(); persist(); microToast(`Added to wishlist`);
 }
 function removeFromCart(id){
-  state.cart = state.cart.filter(x=>x.id!==id);
-  setBadgeCounts(); persist();
+  state.cart = state.cart.filter(x=>x.id!==id); setBadgeCounts(); persist();
 }
+
 function renderCart(){
   const box = document.createElement("div");
   const items = state.cart.map(ci=>{
     const p = state.products.find(x=>x.id===ci.id);
     return `
-      <div class="card" style="margin-bottom:10px">
+      <div class="card glass" style="margin-bottom:10px">
         <div class="card-body" style="display:flex;gap:12px;align-items:center">
           <img src="${p.images[0]}" alt="${p.title}" style="width:88px;height:88px;object-fit:cover;border-radius:12px"/>
           <div style="flex:1">
@@ -243,30 +244,23 @@ function renderCart(){
     ${items || "<p>Your cart is empty.</p>"}
     <div class="p-section">
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <strong>Total</strong>
-        <strong>${currency(total)}</strong>
+        <strong>Total</strong> <strong>${currency(total)}</strong>
       </div>
       <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn ghost" id="continueShop">Continue Shopping</button>
-        <button class="btn primary" id="goCheckout">Proceed to Checkout</button>
+        <button class="btn ghost" id="continueShop">Continue</button>
+        <button class="btn primary" id="goCheckout">Checkout</button>
       </div>
     </div>
   `;
-  // qty controls
   box.addEventListener("click", (e)=>{
-    const t = e.target.closest("button");
-    if(!t) return;
+    const t = e.target.closest("button"); if(!t) return;
     if(t.classList.contains("qty")){
-      const id = t.dataset.id; const d = +t.dataset.d;
-      const it = state.cart.find(x=>x.id===id);
-      if(!it) return;
-      it.qty = Math.max(1, it.qty + d);
-      persist(); openModal("Cart", renderCart());
-      setBadgeCounts();
+      const id=t.dataset.id, d=+t.dataset.d;
+      const it=state.cart.find(x=>x.id===id); if(!it) return;
+      it.qty = Math.max(1, it.qty + d); persist(); openModal("Cart", renderCart()); setBadgeCounts();
     }
     if(t.classList.contains("remove")){
-      removeFromCart(t.dataset.id);
-      openModal("Cart", renderCart());
+      removeFromCart(t.dataset.id); openModal("Cart", renderCart());
     }
     if(t.id==="continueShop"){ closeModal(); }
     if(t.id==="goCheckout"){ openModal("Checkout", renderCheckout()); }
@@ -274,6 +268,7 @@ function renderCart(){
   return box;
 }
 
+// Checkout & Order
 function renderCheckout(){
   const box = document.createElement("div");
   const addr = state.addresses[0];
@@ -291,12 +286,8 @@ function renderCheckout(){
     </div>
     <div class="p-section">
       <h4>Payment</h4>
-      <div>
-        <label><input type="radio" name="pay" value="cod" checked/> Cash on Delivery</label>
-      </div>
-      <div>
-        <label><input type="radio" name="pay" value="card"/> Card (mock)</label>
-      </div>
+      <label><input type="radio" name="pay" value="cod" checked/> Cash on Delivery</label>
+      <label style="margin-left:12px"><input type="radio" name="pay" value="card"/> Card (mock)</label>
     </div>
     <div class="p-section">
       <h4>Review Items</h4>
@@ -319,17 +310,18 @@ function renderCheckout(){
   `;
   box.addEventListener("click",(e)=>{
     const t = e.target;
-    if(t.id==="addAddr" || t.id==="changeAddr"){
-      openModal("Add Address", renderAddressForm());
-    }
+    if(t.id==="addAddr" || t.id==="changeAddr"){ openModal("Add Address", renderAddressForm()); }
     if(t.id==="placeOrder"){
       if(state.cart.length===0){ microToast("Cart is empty"); return; }
       const orderId = "O" + Math.floor(Math.random()*1e6);
       const items = state.cart.map(ci=>({...ci}));
       const now = new Date().toISOString();
-      state.orders.unshift({ id: orderId, date: now, items, total: items.reduce((s,i)=> s + i.qty * (state.products.find(p=>p.id===i.id)?.price||0), 0), status: "Processing" });
-      state.cart = [];
-      persist(); setBadgeCounts();
+      state.orders.unshift({
+        id: orderId, date: now, items,
+        total: items.reduce((s,i)=> s + i.qty * (state.products.find(p=>p.id===i.id)?.price||0), 0),
+        status: "Processing"
+      });
+      state.cart = []; persist(); setBadgeCounts();
       openModal("Order Placed", renderOrderPlaced(orderId));
     }
   });
@@ -355,6 +347,7 @@ function renderOrderPlaced(orderId){
   return box;
 }
 
+// Address form
 function renderAddressForm(){
   const box = document.createElement("form");
   box.className = "p-section";
@@ -371,62 +364,53 @@ function renderAddressForm(){
       </div>
     </div>
   `;
-  box.addEventListener("click",(e)=>{ if(e.target.id==="cancel"){ closeModal(); }});
+  box.addEventListener("click",(e)=>{ if(e.target.id==="cancel") closeModal(); });
   box.addEventListener("submit",(e)=>{
     e.preventDefault();
     const fd = new FormData(box);
     state.addresses = [{ name: fd.get("name"), phone: fd.get("phone"), line1: fd.get("line1"), city: fd.get("city"), pin: fd.get("pin") }];
-    persist();
-    microToast("Address saved");
-    openModal("Checkout", renderCheckout());
+    persist(); microToast("Address saved"); openModal("Checkout", renderCheckout());
   });
   return box;
 }
 
-// Orders and Lists
+// Orders, Wishlist, Profile
 function showOrders(){
-  const container = document.createElement("div");
-  container.innerHTML = `
+  const c = document.createElement("div");
+  c.innerHTML = `
     <div class="p-section">
       <h3>Your Orders</h3>
       ${state.orders.length===0 ? "<p>No orders yet.</p>" : ""}
-      ${state.orders.map(o=>{
-        return `
-          <div class="card" style="margin:10px 0">
-            <div class="card-body">
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <div><strong>${o.id}</strong> • ${new Date(o.date).toLocaleString()}</div>
-                <div><strong>${o.status}</strong></div>
-              </div>
-              ${o.items.map(ci=>{
-                const p = state.products.find(x=>x.id===ci.id);
-                return `<div style="display:flex;gap:10px;align-items:center;margin-top:8px">
-                  <img src="${p.images[0]}" alt="${p.title}" style="width:48px;height:48px;border-radius:10px;object-fit:cover"/>
-                  <div style="flex:1">${p.title}</div>
-                  <div>× ${ci.qty}</div>
-                  <div>${currency(p.price*ci.qty)}</div>
-                  <button class="chip return" data-id="${o.id}" data-p="${p.id}" style="margin-left:8px">Return</button>
-                </div>`;
-              }).join("")}
-              <div style="display:flex;justify-content:flex-end;margin-top:8px">
-                <strong>Total: ${currency(o.total)}</strong>
-              </div>
+      ${state.orders.map(o=>`
+        <div class="card glass" style="margin:10px 0">
+          <div class="card-body">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong>${o.id}</strong> • ${new Date(o.date).toLocaleString()}</div>
+              <div><strong>${o.status}</strong></div>
             </div>
+            ${o.items.map(ci=>{
+              const p = state.products.find(x=>x.id===ci.id);
+              return `<div style="display:flex;gap:10px;align-items:center;margin-top:8px">
+                <img src="${p.images[0]}" alt="${p.title}" style="width:48px;height:48px;border-radius:10px;object-fit:cover"/>
+                <div style="flex:1">${p.title}</div>
+                <div>× ${ci.qty}</div>
+                <div>${currency(p.price*ci.qty)}</div>
+                <button class="chip return" data-id="${o.id}" data-p="${p.id}" style="margin-left:8px">Return</button>
+              </div>`;
+            }).join("")}
+            <div style="display:flex;justify-content:flex-end;margin-top:8px"><strong>Total: ${currency(o.total)}</strong></div>
           </div>
-        `;
-      }).join("")}
+        </div>
+      `).join("")}
     </div>
   `;
-  openModal("Orders", container);
-  container.addEventListener("click",(e)=>{
+  openModal("Orders", c);
+  c.addEventListener("click",(e)=>{
     const t = e.target.closest(".return");
-    if(t){
-      microToast("Return initiated (mock)");
-    }
+    if(t){ microToast("Return initiated (mock)"); }
   });
 }
 
-// Wishlist
 function showWishlist(){
   const container = document.createElement("div");
   const items = state.wishlist.map(id=>state.products.find(p=>p.id===id)).filter(Boolean);
@@ -435,14 +419,14 @@ function showWishlist(){
     ${items.length===0 ? "<p>No items in wishlist.</p>" : ""}
     <div class="grid products">
       ${items.map(p=>`
-        <article class="card">
+        <article class="card glass">
           <div class="card-media"><img src="${p.images[0]}" alt="${p.title}" /></div>
           <div class="card-body">
             <div class="card-title">${p.title}</div>
             <div class="price">${currency(p.price)}</div>
           </div>
           <div class="card-actions">
-            <button class="btn add" data-id="${p.id}"><span class="i i-cart"></span>Add to cart</button>
+            <button class="btn add" data-id="${p.id}"><span class="i i-cart"></span>Add</button>
             <button class="chip" data-view="${p.id}">View</button>
           </div>
         </article>
@@ -452,7 +436,6 @@ function showWishlist(){
   openModal("Wishlist", container);
 }
 
-// Account/Profile
 function showProfile(){
   const box = document.createElement("div");
   const u = state.user;
@@ -461,7 +444,7 @@ function showProfile(){
     <div class="p-section">
       <h4>Account</h4>
       ${u ? `<p>Signed in as <strong>${u.name}</strong></p>` : `<p>Not signed in.</p>`}
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
         ${u ? `<button class="btn ghost" id="logout">Sign out</button>` : `<button class="btn primary" id="login">Sign in</button>`}
         <button class="btn ghost" id="addr">Manage Addresses</button>
       </div>
@@ -495,27 +478,30 @@ function renderAuth(){
     e.preventDefault();
     const fd = new FormData(box);
     state.user = { name: fd.get("name"), email: fd.get("email") };
-    persist();
-    microToast("Signed in");
-    closeModal();
+    persist(); microToast("Signed in"); closeModal();
   });
   return box;
 }
 
-// Search, suggestions, filters
+// Search + suggestions + tags
 function showSuggestions(q){
   const sug = qs("#searchSuggest");
   if(!q){ sug.classList.add("hidden"); return; }
-  const inx = state.suggestions.filter(s=>s.startsWith(q.toLowerCase())).slice(0,6);
+  const inx = state.suggestions.filter(s=>s.toLowerCase().includes(q.toLowerCase())).slice(0,7);
   sug.innerHTML = inx.map(s=>`<div class="item" role="option">${s}</div>`).join("");
   sug.classList.remove("hidden");
 }
-
-function searchProducts(q){
-  const s = q.toLowerCase();
-  return state.products.filter(p => (`${p.title} ${p.brand} ${p.category}`).toLowerCase().includes(s));
+function mountTags(){
+  qs("#searchTags").innerHTML = state.tags.map(t=>`<button class="chip pill" data-tag="${t}">${t}</button>`).join("");
 }
-
+function searchProducts(q, tag=""){
+  const s = q.toLowerCase();
+  return state.products.filter(p => {
+    const hit = (`${p.title} ${p.brand} ${p.category}`).toLowerCase().includes(s);
+    const tagHit = tag ? (`${p.title} ${p.brand} ${p.category}`).toLowerCase().includes(tag.toLowerCase()) : true;
+    return hit && tagHit;
+  });
+}
 function openSearch(q=""){
   const box = document.createElement("div");
   const results = searchProducts(q);
@@ -523,7 +509,7 @@ function openSearch(q=""){
     <div class="p-section">
       <h3>Search</h3>
       <div style="display:grid;gap:10px">
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
           <input id="fText" class="glass" placeholder="Search..." value="${q}"/>
           <select id="fCat" class="glass">
             <option value="">All Categories</option>
@@ -557,23 +543,36 @@ function openSearch(q=""){
   });
 }
 
-// Micro toast
+// Micro toasts and feedback
 function microToast(text){
   const t = document.createElement("div");
   t.textContent = text;
-  t.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0b1220;color:#fff;padding:10px 14px;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.25);z-index:100;opacity:0;transition:opacity 200ms, transform 200ms";
+  t.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(10px);background:#0b1220;color:#fff;padding:10px 14px;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.25);z-index:100;opacity:0;transition:opacity 220ms "+EASE+", transform 220ms "+EASE;
   document.body.appendChild(t);
-  requestAnimationFrame(()=>{ t.style.opacity=1; t.style.transform="translateX(-50%) translateY(-6px)"; });
-  setTimeout(()=>{ t.style.opacity=0; t.style.transform="translateX(-50%) translateY(0)"; setTimeout(()=>t.remove(),200); }, 1600);
+  requestAnimationFrame(()=>{ t.style.opacity=1; t.style.transform="translateX(-50%) translateY(0)"; });
+  setTimeout(()=>{ t.style.opacity=0; t.style.transform="translateX(-50%) translateY(10px)"; setTimeout(()=>t.remove(),240); }, 1500);
+}
+function pulseCart(){
+  const btn = qs("#cartBtn");
+  btn.animate([{transform:"scale(1)"},{transform:"scale(1.08)"},{transform:"scale(1)"}], {duration:360, easing:EASE});
 }
 
 // Event wiring
 function wire(){
-  // initial
   restore();
   renderGrid(state.products);
   renderReco();
   setBadgeCounts();
+  mountTags();
+
+  // header scroll minify
+  let lastY=0;
+  document.addEventListener("scroll", ()=>{
+    const y = window.scrollY;
+    const hdr = qs(".header");
+    if(y>12 && y>lastY) hdr.classList.add("scrolled"); else if(y<8) hdr.classList.remove("scrolled");
+    lastY = y;
+  });
 
   // header actions
   qs("#navToggle").addEventListener("click", ()=>{ qs("#sideDrawer").classList.add("open"); qs("#sideDrawer").setAttribute("aria-hidden","false"); });
@@ -583,19 +582,17 @@ function wire(){
   qs("#cartBtn").addEventListener("click", ()=> openModal("Cart", renderCart()));
   qs("#userBtn").addEventListener("click", showProfile);
 
-  // global clicks (delegation)
+  // global delegation
   document.addEventListener("click", (e)=>{
     const add = e.target.closest(".btn.add, .add-mini");
     const heart = e.target.closest(".btn.heart");
     const view = e.target.closest("[data-view]");
     const sort = e.target.closest("[data-sort]");
     const route = e.target.closest("[data-route]");
+    const tag = e.target.closest("[data-tag]");
     if(add){ addToCart(add.dataset.id); }
     if(heart){ addToWishlist(heart.dataset.id); }
-    if(view){
-      const p = state.products.find(x=>x.id===view.dataset.view);
-      if(p) openModal("Product", productDetail(p));
-    }
+    if(view){ const p = state.products.find(x=>x.id===view.dataset.view); if(p) openModal("Product", productDetail(p)); }
     if(sort){ sortProducts(sort.dataset.sort); }
     if(route){
       const r = route.dataset.route;
@@ -604,9 +601,10 @@ function wire(){
       if(r==="wishlist") showWishlist();
       if(r==="profile") showProfile();
       if(r==="help") openModal("Help & Support", helpPanel());
-      if(r==="seller") openModal("Seller Central (Preview)", sellerPanel());
+      if(r==="seller") openModal("Seller Hub (Preview)", sellerPanel());
       if(r==="home") closeModal();
     }
+    if(tag){ qs("#searchInput").value = tag.dataset.tag; openSearch(tag.dataset.tag); }
   });
 
   // search
@@ -618,15 +616,15 @@ function wire(){
     if(item){ qs("#searchInput").value = item.textContent; openSearch(item.textContent); qs("#searchSuggest").classList.add("hidden"); }
   });
 
-  // modal controls
+  // modal
   qs("#closeModal").addEventListener("click", closeModal);
   qs("#modal").addEventListener("click",(e)=>{ if(e.target.id==="modal") closeModal(); });
 
-  // keyboard accessibility
+  // focus outlines
   qsa("button, a, input, select").forEach(el=> el.classList.add("focus-ring"));
 }
 
-// Help and Seller mock panels
+// Help and Seller panels
 function helpPanel(){
   const box = document.createElement("div");
   box.innerHTML = `
@@ -642,23 +640,21 @@ function helpPanel(){
   `;
   return box;
 }
-
 function sellerPanel(){
   const box = document.createElement("div");
   box.innerHTML = `
     <div class="p-section">
-      <h4>Seller Central (Preview)</h4>
+      <h4>Seller Hub (Preview)</h4>
       <ul>
-        <li>Dashboard with orders, revenue, and performance scorecard</li>
-        <li>Inventory & listing tools with bulk upload</li>
+        <li>Dashboard with orders, revenue, and performance score</li>
+        <li>Inventory & listings with bulk upload</li>
         <li>Promotions, coupons, and ads</li>
         <li>Analytics with low-stock alerts</li>
       </ul>
-      <p class="small">This is a UI preview. Hook to your backend for live seller features.</p>
+      <p class="small">UI preview ready to connect to APIs.</p>
     </div>
   `;
   return box;
 }
 
-// Boot
 document.addEventListener("DOMContentLoaded", wire);

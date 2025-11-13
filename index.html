@@ -3,62 +3,61 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GlassyCart — Shop the Future</title>
+  <title>Ultra Glass — E‑commerce</title>
   <meta name="theme-color" content="#ffffff" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=General+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <div class="bg-orbs" aria-hidden="true">
-    <span class="orb orb-1"></span>
-    <span class="orb orb-2"></span>
-    <span class="orb orb-3"></span>
+  <!-- Background field -->
+  <div class="bg">
+    <div class="gradient-layer"></div>
+    <div class="orbs">
+      <span class="orb orb-a"></span>
+      <span class="orb orb-b"></span>
+      <span class="orb orb-c"></span>
+      <span class="orb orb-d"></span>
+    </div>
+    <div class="grain"></div>
   </div>
 
+  <!-- Header -->
   <header class="glass header">
     <div class="header-left">
-      <button class="icon-btn" id="navToggle" aria-label="Open menu">
-        <span class="i i-menu"></span>
-      </button>
+      <button class="icon-btn" id="navToggle" aria-label="Open menu"><span class="i i-menu"></span></button>
       <a href="#" class="brand">
-        <span class="brand-logo">◎</span>
-        <span class="brand-name">GlassyCart</span>
+        <span class="brand-badge">◎</span>
+        <span class="brand-name">UltraGlass</span>
       </a>
     </div>
 
     <div class="header-center">
-      <div class="search glass" role="search">
-        <input id="searchInput" type="search" placeholder="Search for products, brands and more..." aria-label="Search" autocomplete="off" />
-        <button id="searchBtn" class="btn pill">
-          <span class="i i-search"></span>
-          <span>Search</span>
+      <div class="search glass">
+        <div class="chip pill" id="allCatChip">All</div>
+        <input id="searchInput" type="search" placeholder="Search products, brands, and categories…" aria-label="Search" autocomplete="off" />
+        <button id="searchBtn" class="btn primary">
+          <span class="i i-search"></span><span>Search</span>
         </button>
-        <div id="searchSuggest" class="suggest glass hidden" role="listbox" aria-label="Search suggestions"></div>
+        <div id="searchSuggest" class="suggest glass hidden" role="listbox" aria-label="Suggestions"></div>
       </div>
+      <div class="search-tags" id="searchTags"></div>
     </div>
 
     <nav class="header-right">
-      <button class="icon-btn" id="wishlistBtn" aria-label="Wishlist">
-        <span class="i i-heart"></span>
-        <span class="badge" id="wishCount">0</span>
-      </button>
-      <button class="icon-btn" id="cartBtn" aria-label="Cart">
-        <span class="i i-cart"></span>
-        <span class="badge" id="cartCount">0</span>
-      </button>
-      <button class="icon-btn" id="userBtn" aria-label="Account">
-        <span class="i i-user"></span>
-      </button>
+      <button class="icon-btn" id="wishlistBtn" aria-label="Wishlist"><span class="i i-heart"></span><span class="badge" id="wishCount">0</span></button>
+      <button class="icon-btn" id="cartBtn" aria-label="Cart"><span class="i i-cart"></span><span class="badge" id="cartCount">0</span></button>
+      <button class="icon-btn" id="userBtn" aria-label="Account"><span class="i i-user"></span></button>
     </nav>
   </header>
 
+  <!-- Side Drawer -->
   <aside class="side-drawer glass" id="sideDrawer" aria-hidden="true">
-    <div class="drawer-header">
-      <h3>Browse</h3>
-      <button class="icon-btn" id="closeDrawer" aria-label="Close menu"><span class="i i-close"></span></button>
+    <div class="drawer-head">
+      <h3>Explore</h3>
+      <button class="icon-btn" id="closeDrawer" aria-label="Close"><span class="i i-close"></span></button>
     </div>
     <ul class="drawer-links">
       <li><a data-route="home" href="#">Home</a></li>
@@ -66,59 +65,72 @@
       <li><a data-route="orders" href="#">Orders</a></li>
       <li><a data-route="wishlist" href="#">Wishlist</a></li>
       <li><a data-route="profile" href="#">Account</a></li>
-      <li><a data-route="help" href="#">Help & Support</a></li>
+      <li><a data-route="help" href="#">Help</a></li>
       <li class="separator"></li>
-      <li><a data-route="seller" href="#">Sell on GlassyCart</a></li>
+      <li><a data-route="seller" href="#">Sell on UltraGlass</a></li>
     </ul>
   </aside>
 
   <main id="main">
     <!-- Hero -->
     <section class="hero">
-      <div class="hero-inner glass">
-        <h1>Shop in <span class="accent">glass</span> style</h1>
-        <p>Transparent, fast, and delightful. Discover trends with immersive, glassy product cards and buttery animations.</p>
-        <div class="hero-cta">
-          <button class="btn primary" data-route="search">Explore Deals</button>
-          <button class="btn ghost" data-route="home">New Arrivals</button>
+      <div class="hero-wrap glass">
+        <div class="hero-left">
+          <h1 class="display">Shopping, re‑imagined in <span class="accent">glass</span></h1>
+          <p class="lede">Crystal‑clear surfaces, gentle depth, and delightful motion make browsing feel effortless and premium.</p>
+          <div class="hero-cta">
+            <button class="btn primary" data-route="search">Browse Deals</button>
+            <button class="btn ghost" data-route="home">New & Trending</button>
+          </div>
+          <div class="hero-strip">
+            <span class="chip pill soft">Fast delivery</span>
+            <span class="chip pill soft">Easy returns</span>
+            <span class="chip pill soft">Secure checkout</span>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div class="hero-card glass depth">
+            <div class="shine"></div>
+            <img alt="Hero product" src="https://picsum.photos/seed/ultraglass_hero/900/700" />
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Promo rail -->
-    <section class="rail">
-      <article class="promo glass">
-        <div class="promo-body">
+    <section class="rail promos">
+      <article class="promo glass raise">
+        <div>
           <h3>Lightning Deals</h3>
-          <p>Up to 60% off electronics. Limited time only.</p>
+          <p>Jaw‑dropping prices, limited time only.</p>
         </div>
-        <button class="chip">Shop Now</button>
+        <button class="chip">Shop</button>
       </article>
-      <article class="promo glass">
-        <div class="promo-body">
-          <h3>Fashion Fest</h3>
-          <p>Fresh drops with free returns.</p>
+      <article class="promo glass raise">
+        <div>
+          <h3>Style Edit</h3>
+          <p>Premium fits, free returns.</p>
         </div>
-        <button class="chip">View</button>
+        <button class="chip">Explore</button>
       </article>
-      <article class="promo glass">
-        <div class="promo-body">
-          <h3>Home & Kitchen</h3>
-          <p>Essentials with next-day delivery.</p>
+      <article class="promo glass raise">
+        <div>
+          <h3>Home Upgrades</h3>
+          <p>Essentials for every space.</p>
         </div>
         <button class="chip">Browse</button>
       </article>
     </section>
 
-    <!-- Product grid -->
+    <!-- Featured products -->
     <section class="section">
       <div class="section-head">
-        <h2>Featured Products</h2>
+        <h2>Featured</h2>
         <div class="section-actions">
-          <button class="chip" data-sort="trending">Trending</button>
-          <button class="chip" data-sort="rating">Top Rated</button>
-          <button class="chip" data-sort="price-asc">Price: Low to High</button>
-          <button class="chip" data-sort="price-desc">Price: High to Low</button>
+          <button class="chip pill" data-sort="trending">Trending</button>
+          <button class="chip pill" data-sort="rating">Top Rated</button>
+          <button class="chip pill" data-sort="price-asc">Price ↑</button>
+          <button class="chip pill" data-sort="price-desc">Price ↓</button>
         </div>
       </div>
       <div id="productGrid" class="grid products"></div>
@@ -126,18 +138,16 @@
 
     <!-- Recommended rail -->
     <section class="section">
-      <div class="section-head">
-        <h2>Recommended for you</h2>
-      </div>
+      <div class="section-head"><h2>Recommended</h2></div>
       <div id="recoRail" class="rail cards"></div>
     </section>
 
-    <!-- Drawers / Modals -->
+    <!-- Modal -->
     <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modal-panel glass">
+      <div class="modal-panel glass depth">
         <div class="modal-head">
           <h3 id="modalTitle">Title</h3>
-          <button class="icon-btn" id="closeModal" aria-label="Close dialog"><span class="i i-close"></span></button>
+          <button class="icon-btn" id="closeModal" aria-label="Close"><span class="i i-close"></span></button>
         </div>
         <div id="modalBody" class="modal-body"></div>
       </div>
@@ -147,8 +157,8 @@
   <footer class="footer glass">
     <div class="footer-grid">
       <div>
-        <h4>GlassyCart</h4>
-        <p>Made with love for speed and clarity.</p>
+        <h4>UltraGlass</h4>
+        <p>Beautifully fast shopping UI.</p>
       </div>
       <div>
         <h5>Help</h5>
@@ -169,11 +179,11 @@
       <div>
         <h5>Sell</h5>
         <ul>
-          <li><a data-route="seller" href="#">Become a Seller</a></li>
+          <li><a data-route="seller" href="#">Seller Hub (Preview)</a></li>
         </ul>
       </div>
     </div>
-    <p class="small">© 2025 GlassyCart</p>
+    <p class="small">© 2025 UltraGlass</p>
   </footer>
 
   <script src="app.js"></script>
