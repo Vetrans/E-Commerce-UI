@@ -1,660 +1,975 @@
-// Motion helpers (natural easing, stagger)
-const EASE = 'cubic-bezier(.2,.7,.2,1)';
-const currency = (n) => `₹${n.toLocaleString("en-IN")}`;
-
-// State
+// State Management
 const state = {
   products: [],
   cart: [],
   wishlist: [],
+  compareList: [],
   user: null,
   addresses: [],
   orders: [],
-  suggestions: ["iphone 15", "ultrabook", "noise cancel", "air fryer", "sneakers", "t-shirts", "smartwatch", "sofa", "gaming mouse", "true wireless"],
-  tags: ["Deals", "Under ₹999", "Same‑day", "Top rated", "Bluetooth 5.3", "4K"],
+  currentFilter: 'all',
+  currentSort: null,
+  categories: ['Electronics', 'Fashion', 'Home', 'Beauty', 'Sports'],
+  brands: ['TechPro', 'StyleHub', 'HomeEssence', 'GlowLux', 'FitGear', 'NexaTech', 'UrbanWear', 'SmartHome'],
+  trendingSearches: ['wireless earbuds', 'smartwatch', 'sneakers', 'laptop', 'skincare', 'yoga mat', '4k monitor', 'coffee maker']
 };
 
-// Seed products
-function seedProducts() {
-  const base = [
-    { id: "p1", title: "Aurora Wireless Headphones", brand: "Auralite", category: "Audio", price: 3499, mrp: 5999, rating: 4.4, reviews: 812, badge: "Deal", images: ["https://picsum.photos/seed/aurora1/800/600","https://picsum.photos/seed/aurora2/800/600","https://picsum.photos/seed/aurora3/800/600"], specs: { "Battery": "40 hrs", "Noise Cancel": "Yes", "BT": "5.3" }, fbt: ["p3","p6"] },
-    { id: "p2", title: "Nimbus Pro Laptop 14”", brand: "Nimbus", category: "Computers", price: 58990, mrp: 74990, rating: 4.6, reviews: 214, badge: "Top", images: ["https://picsum.photos/seed/nimbus1/800/600","https://picsum.photos/seed/nimbus2/800/600"], specs: { "CPU": "Ryzen 7", "RAM": "16 GB", "SSD": "1 TB NVMe" }, fbt: ["p7"] },
-    { id: "p3", title: "Flux Smartwatch S2", brand: "Flux", category: "Wearables", price: 4999, mrp: 7999, rating: 4.2, reviews: 1503, images: ["https://picsum.photos/seed/flux1/800/600"], specs: { "AMOLED": "1.8 in", "GPS": "Dual‑band", "IP": "68" }, fbt: ["p1"] },
-    { id: "p4", title: "Breeze Air Fryer 5L", brand: "KitchPro", category: "Home & Kitchen", price: 6990, mrp: 9990, rating: 4.1, reviews: 968, images: ["https://picsum.photos/seed/air1/800/600"], specs: { "Capacity": "5 L", "Wattage": "1500 W", "Modes": "8" } },
-    { id: "p5", title: "Zen Sneakers V", brand: "Stride", category: "Fashion", price: 2990, mrp: 3990, rating: 4.0, reviews: 432, images: ["https://picsum.photos/seed/zen1/800/600"] },
-    { id: "p6", title: "Echo Soundbar 120W", brand: "HomeBeat", category: "Audio", price: 10990, mrp: 14990, rating: 4.3, reviews: 990, images: ["https://picsum.photos/seed/echo1/800/600"] },
-    { id: "p7", title: "Nimbus USB‑C Dock", brand: "Nimbus", category: "Computers", price: 3490, mrp: 4990, rating: 4.5, reviews: 78, images: ["https://picsum.photos/seed/dock1/800/600"] },
-    { id: "p8", title: "Luma LED Desk Lamp", brand: "Luma", category: "Home & Kitchen", price: 1290, mrp: 1990, rating: 4.2, reviews: 356, images: ["https://picsum.photos/seed/lamp1/800/600"] },
-    { id: "p9", title: "PixelView 4K Monitor 27”", brand: "ViewMax", category: "Computers", price: 18990, mrp: 25990, rating: 4.4, reviews: 624, images: ["https://picsum.photos/seed/monitor1/800/600"] },
-    { id: "p10", title: "AeroFit Running Tee", brand: "Aero", category: "Fashion", price: 799, mrp: 1299, rating: 4.1, reviews: 1120, images: ["https://picsum.photos/seed/tee1/800/600"] },
-  ];
-  state.products = base;
-}
+// Utility Functions
+const currency = (amount) => `₹${amount.toLocaleString('en-IN')}`;
 
-function persist(){
-  localStorage.setItem("ultraglass_state", JSON.stringify({
+const saveToMemory = () => {
+  // Note: Using in-memory storage instead of localStorage for Claude.ai compatibility
+  sessionStorage.setItem('nexamart_data', JSON.stringify({
     cart: state.cart,
     wishlist: state.wishlist,
+    compareList: state.compareList,
     user: state.user,
     addresses: state.addresses,
     orders: state.orders
   }));
-}
-function restore(){
-  seedProducts();
-  const raw = localStorage.getItem("ultraglass_state");
-  if(!raw) return;
-  try{
-    const saved = JSON.parse(raw);
-    Object.assign(state, saved, { products: state.products });
-  }catch{}
-}
+};
 
-// DOM helpers
-const qs = (s, r=document)=> r.querySelector(s);
-const qsa = (s, r=document)=> Array.from(r.querySelectorAll(s));
+const loadFromMemory = () => {
+  try {
+    const saved = sessionStorage.getItem('nexamart_data');
+    if (saved) {
+      const data = JSON.parse(saved);
+      Object.assign(state, data);
+    }
+  } catch (error) {
+    console.error('Failed to load data:', error);
+  }
+};
 
-// Product card
-function productCard(p, idx=0){
-  const el = document.createElement("article");
-  el.className = "card glass";
-  el.style.animation = `staggerUp 600ms ${EASE} ${idx*40}ms both`;
-  el.innerHTML = `
-    <div class="card-media">
-      <img src="${p.images[0]}" alt="${p.title}" loading="lazy"/>
-      ${p.badge ? `<span class="chip badge-chip">${p.badge}</span>` : ""}
+// Initialize Products
+const initProducts = () => {
+  state.products = [
+    {
+      id: 'p1',
+      title: 'Premium Wireless Earbuds Pro',
+      brand: 'TechPro',
+      category: 'Electronics',
+      price: 4999,
+      originalPrice: 7999,
+      rating: 4.8,
+      reviews: 2341,
+      image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&h=800&fit=crop',
+      badge: 'deal',
+      trending: true,
+      new: false
+    },
+    {
+      id: 'p2',
+      title: 'Ultra Slim Laptop 14"',
+      brand: 'NexaTech',
+      category: 'Electronics',
+      price: 65990,
+      originalPrice: 89990,
+      rating: 4.6,
+      reviews: 856,
+      image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&h=800&fit=crop',
+      badge: 'new',
+      trending: true,
+      new: true
+    },
+    {
+      id: 'p3',
+      title: 'Smart Fitness Watch Ultra',
+      brand: 'FitGear',
+      category: 'Electronics',
+      price: 12999,
+      originalPrice: 19999,
+      rating: 4.7,
+      reviews: 1523,
+      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=800&fit=crop',
+      badge: 'deal',
+      trending: true,
+      new: false
+    },
+    {
+      id: 'p4',
+      title: 'Premium Running Shoes',
+      brand: 'FitGear',
+      category: 'Sports',
+      price: 5499,
+      originalPrice: 8999,
+      rating: 4.5,
+      reviews: 987,
+      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=800&fit=crop',
+      trending: false,
+      new: false
+    },
+    {
+      id: 'p5',
+      title: 'Designer Denim Jacket',
+      brand: 'UrbanWear',
+      category: 'Fashion',
+      price: 3999,
+      originalPrice: 6999,
+      rating: 4.4,
+      reviews: 654,
+      image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&h=800&fit=crop',
+      trending: false,
+      new: true
+    },
+    {
+      id: 'p6',
+      title: 'Smart Home Hub Controller',
+      brand: 'SmartHome',
+      category: 'Home',
+      price: 8999,
+      originalPrice: 12999,
+      rating: 4.6,
+      reviews: 432,
+      image: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=800&h=800&fit=crop',
+      badge: 'new',
+      trending: false,
+      new: true
+    },
+    {
+      id: 'p7',
+      title: 'Luxury Skincare Set',
+      brand: 'GlowLux',
+      category: 'Beauty',
+      price: 2999,
+      originalPrice: 4999,
+      rating: 4.9,
+      reviews: 1876,
+      image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800&h=800&fit=crop',
+      trending: true,
+      new: false
+    },
+    {
+      id: 'p8',
+      title: '4K Ultra HD Monitor 27"',
+      brand: 'NexaTech',
+      category: 'Electronics',
+      price: 24999,
+      originalPrice: 34999,
+      rating: 4.7,
+      reviews: 543,
+      image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&h=800&fit=crop',
+      trending: false,
+      new: false
+    },
+    {
+      id: 'p9',
+      title: 'Premium Yoga Mat Set',
+      brand: 'FitGear',
+      category: 'Sports',
+      price: 1999,
+      originalPrice: 3499,
+      rating: 4.6,
+      reviews: 765,
+      image: 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=800&h=800&fit=crop',
+      trending: false,
+      new: false
+    },
+    {
+      id: 'p10',
+      title: 'Minimalist Backpack',
+      brand: 'UrbanWear',
+      category: 'Fashion',
+      price: 2499,
+      originalPrice: 3999,
+      rating: 4.5,
+      reviews: 892,
+      image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=800&fit=crop',
+      trending: false,
+      new: false
+    },
+    {
+      id: 'p11',
+      title: 'Bluetooth Speaker Pro',
+      brand: 'TechPro',
+      category: 'Electronics',
+      price: 6999,
+      originalPrice: 9999,
+      rating: 4.8,
+      reviews: 1234,
+      image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800&h=800&fit=crop',
+      badge: 'deal',
+      trending: true,
+      new: false
+    },
+    {
+      id: 'p12',
+      title: 'Ceramic Coffee Maker',
+      brand: 'HomeEssence',
+      category: 'Home',
+      price: 4499,
+      originalPrice: 6999,
+      rating: 4.3,
+      reviews: 567,
+      image: 'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?w=800&h=800&fit=crop',
+      trending: false,
+      new: false
+    }
+  ];
+};
+
+// UI Components
+const createProductCard = (product) => {
+  const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+  
+  const card = document.createElement('div');
+  card.className = 'product-card';
+  card.innerHTML = `
+    <div class="product-image">
+      <img src="${product.image}" alt="${product.title}" loading="lazy">
+      <div class="product-badges">
+        ${product.badge === 'deal' ? '<span class="product-badge deal">Deal</span>' : ''}
+        ${product.badge === 'new' ? '<span class="product-badge new">New</span>' : ''}
+      </div>
+      <div class="product-actions">
+        <button class="product-action-btn wishlist-btn" data-id="${product.id}" aria-label="Add to wishlist">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+          </svg>
+        </button>
+        <button class="product-action-btn compare-btn" data-id="${product.id}" aria-label="Add to compare">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4"/>
+          </svg>
+        </button>
+      </div>
     </div>
-    <div class="card-body">
-      <h3 class="card-title">${p.title}</h3>
-      <div class="rating">★ ${p.rating} • ${p.reviews.toLocaleString()} reviews</div>
-      <div class="price">${currency(p.price)} <span class="mrp">${currency(p.mrp)}</span></div>
-    </div>
-    <div class="card-actions">
-      <button class="btn add" data-id="${p.id}"><span class="i i-cart"></span>Add</button>
-      <button class="btn heart" data-id="${p.id}" aria-label="Wishlist"><span class="i i-heart"></span></button>
-      <button class="chip" data-view="${p.id}">View</button>
+    <div class="product-info">
+      <div class="product-brand">${product.brand}</div>
+      <h3 class="product-title">${product.title}</h3>
+      <div class="product-rating">
+        <span class="rating-stars">${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5 - Math.floor(product.rating))}</span>
+        <span class="rating-count">(${product.reviews.toLocaleString()})</span>
+      </div>
+      <div class="product-price">
+        <span class="current-price">${currency(product.price)}</span>
+        <span class="original-price">${currency(product.originalPrice)}</span>
+        <span class="discount-badge">${discount}% OFF</span>
+      </div>
+      <div class="product-cta">
+        <button class="add-to-cart-btn" data-id="${product.id}">Add to Cart</button>
+        <button class="quick-view-btn" data-id="${product.id}">Quick View</button>
+      </div>
     </div>
   `;
-  requestAnimationFrame(()=> el.classList.add("in"));
-  return el;
-}
+  
+  return card;
+};
 
-function renderGrid(list){
-  const grid = qs("#productGrid");
-  grid.innerHTML = "";
-  list.forEach((p, i)=> grid.appendChild(productCard(p, i)));
-}
-
-function renderReco(){
-  const rail = qs("#recoRail");
-  rail.innerHTML = "";
-  const picks = state.products.slice().sort((a,b)=>b.rating-a.rating).slice(0,8);
-  picks.forEach(p=>{
-    const el = document.createElement("div");
-    el.className = "card glass";
-    el.style.minWidth = "240px";
-    el.innerHTML = `
-      <div class="card-media"><img src="${p.images[0]}" alt="${p.title}" /></div>
-      <div class="card-body"><div class="card-title">${p.title}</div><div class="price">${currency(p.price)}</div></div>
-      <div class="card-actions"><button class="chip" data-view="${p.id}">View</button></div>
-    `;
-    rail.appendChild(el);
-    requestAnimationFrame(()=> el.classList.add("in"));
-  });
-}
-
-function sortProducts(key){
-  let arr = state.products.slice();
-  if(key==="trending") arr.sort((a,b)=>b.reviews - a.reviews);
-  if(key==="rating") arr.sort((a,b)=>b.rating - a.rating);
-  if(key==="price-asc") arr.sort((a,b)=>a.price - b.price);
-  if(key==="price-desc") arr.sort((a,b)=>b.price - a.price);
-  renderGrid(arr);
-}
-
-// Counts
-function setBadgeCounts(){
-  qs("#cartCount").textContent = state.cart.reduce((s,i)=>s+i.qty,0);
-  qs("#wishCount").textContent = state.wishlist.length;
-}
-
-// Modal
-function openModal(title, node){
-  qs("#modalTitle").textContent = title;
-  const body = qs("#modalBody");
-  body.innerHTML = "";
-  body.appendChild(node);
-  const modal = qs("#modal");
-  modal.classList.remove("hidden");
-  document.body.style.overflow = "hidden";
-}
-function closeModal(){
-  qs("#modal").classList.add("hidden");
-  document.body.style.overflow = "";
-}
-
-// Product detail with cinematic zoom hover
-function productDetail(p){
-  const wrap = document.createElement("div");
-  wrap.className = "product-detail";
-  const thumbs = p.images.map((src,i)=>`<img src="${src}" alt="${p.title} ${i+1}" data-idx="${i}" class="${i===0?"active":""}"/>`).join("");
-  const specs = p.specs ? Object.entries(p.specs).map(([k,v])=>`<li><strong>${k}:</strong> ${v}</li>`).join("") : "<li>No specs</li>";
-  const fbt = (p.fbt||[]).map(id=>state.products.find(x=>x.id===id)).filter(Boolean);
-  wrap.innerHTML = `
-    <div class="p-gallery" id="pg">
-      <div class="main"><img id="pMainImg" src="${p.images[0]}" alt="${p.title} main"/></div>
-      <div class="thumbs">${thumbs}</div>
+const createCategoryCard = (category) => {
+  const images = {
+    'Electronics': 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&h=400&fit=crop',
+    'Fashion': 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=600&h=400&fit=crop',
+    'Home': 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=600&h=400&fit=crop',
+    'Beauty': 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&h=400&fit=crop',
+    'Sports': 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600&h=400&fit=crop'
+  };
+  
+  const card = document.createElement('div');
+  card.className = 'category-card';
+  card.dataset.category = category.toLowerCase();
+  card.innerHTML = `
+    <img src="${images[category]}" alt="${category}">
+    <div class="category-info">
+      <h3>${category}</h3>
+      <p>Explore collection →</p>
     </div>
-    <div class="p-info">
-      <h2 class="p-title">${p.title}</h2>
-      <div class="p-meta"><span>Brand: ${p.brand}</span><span>Category: ${p.category}</span></div>
-      <div class="rating">★ ${p.rating} • ${p.reviews.toLocaleString()} reviews</div>
-      <div class="price">${currency(p.price)} <span class="mrp">${currency(p.mrp)}</span></div>
-      <div class="p-cta">
-        <button class="btn primary" data-buy="${p.id}">Buy Now</button>
-        <button class="btn add" data-id="${p.id}"><span class="i i-cart"></span>Add to cart</button>
-        <button class="btn heart" data-id="${p.id}" aria-label="Wishlist"><span class="i i-heart"></span></button>
+  `;
+  
+  return card;
+};
+
+// Cart Functions
+const addToCart = (productId) => {
+  const product = state.products.find(p => p.id === productId);
+  if (!product) return;
+  
+  const existingItem = state.cart.find(item => item.id === productId);
+  
+  if (existingItem) {
+    existingItem.quantity += 1;
+  } else {
+    state.cart.push({
+      id: productId,
+      quantity: 1,
+      price: product.price
+    });
+  }
+  
+  updateCartCount();
+  saveToMemory();
+  showToast('Added to cart successfully!', 'success');
+};
+
+const removeFromCart = (productId) => {
+  state.cart = state.cart.filter(item => item.id !== productId);
+  updateCartCount();
+  saveToMemory();
+  showToast('Removed from cart', 'success');
+};
+
+const updateCartQuantity = (productId, change) => {
+  const item = state.cart.find(item => item.id === productId);
+  if (!item) return;
+  
+  item.quantity = Math.max(1, item.quantity + change);
+  updateCartCount();
+  saveToMemory();
+};
+
+const getCartTotal = () => {
+  return state.cart.reduce((total, item) => {
+    const product = state.products.find(p => p.id === item.id);
+    return total + (product ? product.price * item.quantity : 0);
+  }, 0);
+};
+
+const updateCartCount = () => {
+  const count = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+  document.getElementById('cartCount').textContent = count;
+};
+
+// Wishlist Functions
+const addToWishlist = (productId) => {
+  if (!state.wishlist.includes(productId)) {
+    state.wishlist.push(productId);
+    updateWishlistCount();
+    saveToMemory();
+    showToast('Added to wishlist!', 'success');
+  } else {
+    showToast('Already in wishlist', 'warning');
+  }
+};
+
+const removeFromWishlist = (productId) => {
+  state.wishlist = state.wishlist.filter(id => id !== productId);
+  updateWishlistCount();
+  saveToMemory();
+  showToast('Removed from wishlist', 'success');
+};
+
+const updateWishlistCount = () => {
+  document.getElementById('wishCount').textContent = state.wishlist.length;
+};
+
+// Compare Functions
+const addToCompare = (productId) => {
+  if (state.compareList.length >= 4) {
+    showToast('Maximum 4 products can be compared', 'warning');
+    return;
+  }
+  
+  if (!state.compareList.includes(productId)) {
+    state.compareList.push(productId);
+    updateCompareCount();
+    saveToMemory();
+    showToast('Added to compare list!', 'success');
+  } else {
+    showToast('Already in compare list', 'warning');
+  }
+};
+
+const removeFromCompare = (productId) => {
+  state.compareList = state.compareList.filter(id => id !== productId);
+  updateCompareCount();
+  saveToMemory();
+};
+
+const updateCompareCount = () => {
+  document.getElementById('compareCount').textContent = state.compareList.length;
+};
+
+// Modal Functions
+const showModal = (content) => {
+  const overlay = document.getElementById('modalOverlay');
+  const modalContent = document.getElementById('modalContent');
+  modalContent.innerHTML = content;
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+};
+
+const hideModal = () => {
+  const overlay = document.getElementById('modalOverlay');
+  overlay.classList.remove('active');
+  document.body.style.overflow = '';
+};
+
+// Toast Notifications
+const showToast = (message, type = 'success') => {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+};
+
+// Product Detail Modal
+const showProductDetail = (productId) => {
+  const product = state.products.find(p => p.id === productId);
+  if (!product) return;
+  
+  const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+  
+  const content = `
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+      <div>
+        <img src="${product.image}" alt="${product.title}" style="width: 100%; border-radius: 16px;">
       </div>
-      <div class="p-sections">
-        <div class="p-section">
-          <h4>Specifications</h4>
-          <ul>${specs}</ul>
+      <div>
+        <div style="font-size: 14px; color: #6366f1; font-weight: 600; margin-bottom: 8px;">${product.brand}</div>
+        <h2 style="font-size: 32px; font-weight: 800; margin-bottom: 16px;">${product.title}</h2>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+          <span style="color: #fbbf24; font-size: 18px;">${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5 - Math.floor(product.rating))}</span>
+          <span style="color: #64748b;">${product.rating}/5 (${product.reviews.toLocaleString()} reviews)</span>
         </div>
-        <div class="p-section">
-          <h4>Frequently bought together</h4>
-          <div class="rail cards">
-            ${fbt.map(fp=>`
-              <div class="card glass" style="min-width:220px">
-                <div class="card-media"><img src="${fp.images[0]}" alt="${fp.title}" /></div>
-                <div class="card-body"><div class="card-title">${fp.title}</div><div class="price">${currency(fp.price)}</div></div>
-                <div class="card-actions">
-                  <button class="chip" data-view="${fp.id}">View</button>
-                  <button class="chip add-mini" data-id="${fp.id}">Add</button>
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 32px;">
+          <span style="font-size: 36px; font-weight: 800;">${currency(product.price)}</span>
+          <span style="font-size: 20px; color: #94a3b8; text-decoration: line-through;">${currency(product.originalPrice)}</span>
+          <span style="padding: 6px 12px; background: #ec4899; color: white; border-radius: 8px; font-weight: 700;">${discount}% OFF</span>
+        </div>
+        <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+          <button onclick="addToCart('${product.id}'); hideModal();" style="flex: 1; padding: 16px; background: #6366f1; color: white; border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer; border: none;">Add to Cart</button>
+          <button onclick="addToWishlist('${product.id}');" style="padding: 16px 24px; background: white; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+            </svg>
+          </button>
+        </div>
+        <div style="padding: 24px; background: #f1f5f9; border-radius: 12px;">
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">Product Highlights</h3>
+          <ul style="list-style: none; padding: 0; display: grid; gap: 8px;">
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: #10b981;">✓</span> Free Shipping
+            </li>
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: #10b981;">✓</span> 30-Day Returns
+            </li>
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: #10b981;">✓</span> 1 Year Warranty
+            </li>
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: #10b981;">✓</span> Cash on Delivery Available
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  showModal(content);
+};
+
+// Cart Modal
+const showCartModal = () => {
+  if (state.cart.length === 0) {
+    showModal('<div style="text-align: center; padding: 60px 20px;"><h2 style="font-size: 24px; margin-bottom: 16px;">Your cart is empty</h2><p style="color: #64748b; margin-bottom: 24px;">Add some products to get started!</p><button onclick="hideModal()" style="padding: 12px 32px; background: #6366f1; color: white; border-radius: 50px; font-weight: 600; cursor: pointer; border: none;">Continue Shopping</button></div>');
+    return;
+  }
+  
+  const cartItems = state.cart.map(item => {
+    const product = state.products.find(p => p.id === item.id);
+    if (!product) return '';
+    
+    return `
+      <div style="display: flex; gap: 20px; padding: 20px; background: #f8fafc; border-radius: 16px; margin-bottom: 16px;">
+        <img src="${product.image}" alt="${product.title}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px;">
+        <div style="flex: 1;">
+          <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">${product.title}</h3>
+          <div style="font-size: 20px; font-weight: 800; color: #6366f1; margin-bottom: 12px;">${currency(product.price)}</div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button onclick="updateCartQuantity('${item.id}', -1); showCartModal();" style="width: 32px; height: 32px; border-radius: 8px; background: white; border: 1px solid #e2e8f0; cursor: pointer;">-</button>
+            <span style="font-weight: 600; min-width: 24px; text-align: center;">${item.quantity}</span>
+            <button onclick="updateCartQuantity('${item.id}', 1); showCartModal();" style="width: 32px; height: 32px; border-radius: 8px; background: white; border: 1px solid #e2e8f0; cursor: pointer;">+</button>
+            <button onclick="removeFromCart('${item.id}'); showCartModal();" style="margin-left: auto; padding: 8px 16px; background: #ef4444; color: white; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none;">Remove</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  const total = getCartTotal();
+  
+  const content = `
+    <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 24px;">Shopping Cart</h2>
+    ${cartItems}
+    <div style="border-top: 2px solid #e2e8f0; padding-top: 20px; margin-top: 20px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+        <span style="font-size: 18px; font-weight: 600;">Subtotal:</span>
+        <span style="font-size: 24px; font-weight: 800;">${currency(total)}</span>
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <button onclick="hideModal()" style="flex: 1; padding: 16px; background: white; border: 2px solid #e2e8f0; border-radius: 12px; font-weight: 600; cursor: pointer;">Continue Shopping</button>
+        <button onclick="showCheckout()" style="flex: 1; padding: 16px; background: #6366f1; color: white; border-radius: 12px; font-weight: 600; cursor: pointer; border: none;">Proceed to Checkout</button>
+      </div>
+    </div>
+  `;
+  
+  showModal(content);
+};
+
+// Checkout Modal
+const showCheckout = () => {
+  const total = getCartTotal();
+  
+  const content = `
+    <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 24px;">Checkout</h2>
+    <div style="display: grid; grid-template-columns: 1fr 400px; gap: 40px;">
+      <div>
+        <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">Delivery Information</h3>
+        <form id="checkoutForm" style="display: grid; gap: 16px;">
+          <input type="text" placeholder="Full Name" required style="padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px;">
+          <input type="email" placeholder="Email" required style="padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px;">
+          <input type="tel" placeholder="Phone Number" required style="padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px;">
+          <input type="text" placeholder="Address Line 1" required style="padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px;">
+          <input type="text" placeholder="City" required style="padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px;">
+          <input type="text" placeholder="PIN Code" required style="padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px;">
+          
+          <h3 style="font-size: 20px; font-weight: 700; margin-top: 16px;">Payment Method</h3>
+          <label style="padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="radio" name="payment" value="cod" checked style="width: 20px; height: 20px;">
+            <span style="font-weight: 600;">Cash on Delivery</span>
+          </label>
+          <label style="padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="radio" name="payment" value="card" style="width: 20px; height: 20px;">
+            <span style="font-weight: 600;">Card Payment (Demo)</span>
+          </label>
+        </form>
+      </div>
+      <div>
+        <div style="padding: 24px; background: #f8fafc; border-radius: 16px;">
+          <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">Order Summary</h3>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+            <span>Subtotal:</span>
+            <span style="font-weight: 600;">${currency(total)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+            <span>Shipping:</span>
+            <span style="color: #10b981; font-weight: 600;">FREE</span>
+          </div>
+          <div style="border-top: 2px solid #e2e8f0; padding-top: 12px; margin-top: 12px; display: flex; justify-content: space-between;">
+            <span style="font-size: 20px; font-weight: 700;">Total:</span>
+            <span style="font-size: 24px; font-weight: 800;">${currency(total)}</span>
+          </div>
+          <button onclick="placeOrder()" style="width: 100%; padding: 16px; background: #6366f1; color: white; border-radius: 12px; font-weight: 600; font-size: 16px; margin-top: 20px; cursor: pointer; border: none;">Place Order</button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  showModal(content);
+};
+
+// Place Order
+const placeOrder = () => {
+  const orderId = 'ORD' + Date.now();
+  const orderDate = new Date().toISOString();
+  
+  state.orders.unshift({
+    id: orderId,
+    date: orderDate,
+    items: [...state.cart],
+    total: getCartTotal(),
+    status: 'Processing'
+  });
+  
+  state.cart = [];
+  updateCartCount();
+  saveToMemory();
+  
+  const content = `
+    <div style="text-align: center; padding: 40px 20px;">
+      <div style="width: 80px; height: 80px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" style="width: 40px; height: 40px;">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h2 style="font-size: 32px; font-weight: 800; margin-bottom: 12px;">Order Placed Successfully!</h2>
+      <p style="font-size: 18px; color: #64748b; margin-bottom: 8px;">Order ID: <strong>${orderId}</strong></p>
+      <p style="color: #64748b; margin-bottom: 32px;">You will receive a confirmation email shortly</p>
+      <button onclick="hideModal()" style="padding: 16px 32px; background: #6366f1; color: white; border-radius: 50px; font-weight: 600; cursor: pointer; border: none; font-size: 16px;">Continue Shopping</button>
+    </div>
+  `;
+  
+  showModal(content);
+  showToast('Order placed successfully!', 'success');
+};
+
+// Filter and Sort Products
+const filterProducts = (filter) => {
+  state.currentFilter = filter;
+  renderProducts();
+};
+
+const sortProducts = (sortType) => {
+  state.currentSort = sortType;
+  renderProducts();
+};
+
+const getFilteredProducts = () => {
+  let products = [...state.products];
+  
+  // Apply filter
+  if (state.currentFilter === 'trending') {
+    products = products.filter(p => p.trending);
+  } else if (state.currentFilter === 'top-rated') {
+    products = products.sort((a, b) => b.rating - a.rating);
+  } else if (state.currentFilter === 'new') {
+    products = products.filter(p => p.new);
+  }
+  
+  // Apply sort
+  if (state.currentSort === 'price-low') {
+    products.sort((a, b) => a.price - b.price);
+  } else if (state.currentSort === 'price-high') {
+    products.sort((a, b) => b.price - a.price);
+  }
+  
+  return products;
+};
+
+// Render Functions
+const renderProducts = () => {
+  const grid = document.getElementById('productsGrid');
+  if (!grid) return;
+  
+  const products = getFilteredProducts();
+  grid.innerHTML = '';
+  
+  products.slice(0, 8).forEach(product => {
+    grid.appendChild(createProductCard(product));
+  });
+};
+
+const renderCategories = () => {
+  const grid = document.getElementById('categoryGrid');
+  if (!grid) return;
+  
+  state.categories.forEach(category => {
+    grid.appendChild(createCategoryCard(category));
+  });
+};
+
+const renderDealsCarousel = () => {
+  const carousel = document.getElementById('dealsCarousel');
+  if (!carousel) return;
+  
+  const dealProducts = state.products.filter(p => p.badge === 'deal');
+  
+  dealProducts.forEach(product => {
+    carousel.appendChild(createProductCard(product));
+  });
+};
+
+const renderBrands = () => {
+  const grid = document.getElementById('brandsGrid');
+  if (!grid) return;
+  
+  state.brands.forEach(brand => {
+    const card = document.createElement('div');
+    card.className = 'brand-card';
+    card.textContent = brand;
+    card.onclick = () => showToast(`Showing ${brand} products`, 'success');
+    grid.appendChild(card);
+  });
+};
+
+const renderTrendingTags = () => {
+  const container = document.getElementById('trendTags');
+  if (!container) return;
+  
+  state.trendingSearches.forEach(term => {
+    const tag = document.createElement('button');
+    tag.className = 'trend-tag';
+    tag.textContent = term;
+    tag.onclick = () => {
+      document.getElementById('searchInput').value = term;
+      showToast(`Searching for "${term}"`, 'success');
+    };
+    container.appendChild(tag);
+  });
+};
+
+// Countdown Timer
+const startDealTimer = () => {
+  const endTime = new Date().getTime() + (24 * 60 * 60 * 1000); // 24 hours from now
+  
+  const updateTimer = () => {
+    const now = new Date().getTime();
+    const distance = endTime - now;
+    
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    
+    const hoursEl = document.getElementById('hours');
+    const minutesEl = document.getElementById('minutes');
+    const secondsEl = document.getElementById('seconds');
+    
+    if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+    if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+    if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+    
+    if (distance < 0) {
+      clearInterval(timerInterval);
+    }
+  };
+  
+  updateTimer();
+  const timerInterval = setInterval(updateTimer, 1000);
+};
+
+// Event Handlers
+const handleHeaderScroll = () => {
+  const header = document.querySelector('.main-header');
+  if (window.scrollY > 50) {
+    header.classList.add('scrolled');
+  } else {
+    header.classList.remove('scrolled');
+  }
+};
+
+const handleBannerClose = () => {
+  const banner = document.querySelector('.top-banner');
+  if (banner) {
+    banner.style.display = 'none';
+  }
+};
+
+// Initialize App
+const init = () => {
+  loadFromMemory();
+  initProducts();
+  
+  // Render initial content
+  renderCategories();
+  renderProducts();
+  renderDealsCarousel();
+  renderBrands();
+  renderTrendingTags();
+  
+  // Update counts
+  updateCartCount();
+  updateWishlistCount();
+  updateCompareCount();
+  
+  // Start countdown timer
+  startDealTimer();
+  
+  // Event Listeners
+  window.addEventListener('scroll', handleHeaderScroll);
+  
+  // Banner close
+  const bannerClose = document.querySelector('.banner-close');
+  if (bannerClose) {
+    bannerClose.addEventListener('click', handleBannerClose);
+  }
+  
+  // Search trigger
+  const searchTrigger = document.getElementById('searchTrigger');
+  const searchBar = document.getElementById('searchBar');
+  const searchClose = document.getElementById('searchClose');
+  
+  if (searchTrigger && searchBar) {
+    searchTrigger.addEventListener('click', () => {
+      searchBar.classList.add('active');
+      document.getElementById('searchInput').focus();
+    });
+  }
+  
+  if (searchClose) {
+    searchClose.addEventListener('click', () => {
+      searchBar.classList.remove('active');
+    });
+  }
+  
+  // Mobile menu
+  const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+  const mobileSidebar = document.getElementById('mobileSidebar');
+  const sidebarClose = document.getElementById('sidebarClose');
+  
+  if (mobileMenuBtn && mobileSidebar) {
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileSidebar.classList.add('active');
+    });
+  }
+  
+  if (sidebarClose) {
+    sidebarClose.addEventListener('click', () => {
+      mobileSidebar.classList.remove('active');
+    });
+  }
+  
+  // Header action buttons
+  const wishlistBtn = document.getElementById('wishlistBtn');
+  const cartBtn = document.getElementById('cartBtn');
+  const compareBtn = document.getElementById('compareBtn');
+  
+  if (wishlistBtn) {
+    wishlistBtn.addEventListener('click', () => {
+      const wishlistProducts = state.wishlist.map(id => state.products.find(p => p.id === id)).filter(Boolean);
+      const content = `
+        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 24px;">My Wishlist</h2>
+        ${wishlistProducts.length === 0 ? '<p style="text-align: center; color: #64748b; padding: 40px;">Your wishlist is empty</p>' : ''}
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+          ${wishlistProducts.map(p => `
+            <div style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+              <img src="${p.image}" alt="${p.title}" style="width: 100%; aspect-ratio: 1; object-fit: cover;">
+              <div style="padding: 16px;">
+                <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">${p.title}</h3>
+                <div style="font-size: 20px; font-weight: 800; color: #6366f1; margin-bottom: 12px;">${currency(p.price)}</div>
+                <div style="display: flex; gap: 8px;">
+                  <button onclick="addToCart('${p.id}'); showToast('Added to cart!', 'success');" style="flex: 1; padding: 10px; background: #6366f1; color: white; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 14px;">Add to Cart</button>
+                  <button onclick="removeFromWishlist('${p.id}'); wishlistBtn.click();" style="padding: 10px 14px; background: #ef4444; color: white; border-radius: 8px; cursor: pointer; border: none;">×</button>
                 </div>
               </div>
-            `).join("")}
-          </div>
+            </div>
+          `).join('')}
         </div>
-        <div class="p-section">
-          <h4>Reviews</h4>
-          <p class="small">Verified reviews, helpful votes, and media upload UI can be added later.</p>
+      `;
+      showModal(content);
+    });
+  }
+  
+  if (cartBtn) {
+    cartBtn.addEventListener('click', showCartModal);
+  }
+  
+  if (compareBtn) {
+    compareBtn.addEventListener('click', () => {
+      const compareProducts = state.compareList.map(id => state.products.find(p => p.id === id)).filter(Boolean);
+      const content = `
+        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 24px;">Compare Products</h2>
+        ${compareProducts.length === 0 ? '<p style="text-align: center; color: #64748b; padding: 40px;">No products to compare</p>' : ''}
+        <div style="display: grid; grid-template-columns: repeat(${compareProducts.length}, 1fr); gap: 20px;">
+          ${compareProducts.map(p => `
+            <div style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;">
+              <img src="${p.image}" alt="${p.title}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 16px;">
+              <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">${p.title}</h3>
+              <div style="font-size: 20px; font-weight: 800; color: #6366f1; margin-bottom: 12px;">${currency(p.price)}</div>
+              <div style="margin-bottom: 12px;">
+                <div style="font-size: 14px; color: #64748b; margin-bottom: 4px;">Rating</div>
+                <div style="color: #fbbf24; font-weight: 600;">${p.rating}/5</div>
+              </div>
+              <div style="margin-bottom: 12px;">
+                <div style="font-size: 14px; color: #64748b; margin-bottom: 4px;">Brand</div>
+                <div style="font-weight: 600;">${p.brand}</div>
+              </div>
+              <button onclick="removeFromCompare('${p.id}'); compareBtn.click();" style="width: 100%; padding: 10px; background: #ef4444; color: white; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; margin-top: 12px;">Remove</button>
+            </div>
+          `).join('')}
         </div>
-        <div class="p-section">
-          <h4>Q&A</h4>
-          <p class="small">Ask questions and get answers from buyers and sellers.</p>
-        </div>
-      </div>
-    </div>
-  `;
-  const pg = qs("#pg", wrap);
-  pg.addEventListener("mouseenter", ()=> pg.classList.add("zoom"));
-  pg.addEventListener("mouseleave", ()=> pg.classList.remove("zoom"));
-  wrap.querySelectorAll(".thumbs img").forEach(img=>{
-    img.addEventListener("click", ()=>{
-      qs("#pMainImg", wrap).src = img.src;
-      wrap.querySelectorAll(".thumbs img").forEach(t=>t.classList.remove("active"));
-      img.classList.add("active");
+      `;
+      showModal(content);
+    });
+  }
+  
+  // Modal close
+  const modalClose = document.getElementById('modalClose');
+  const modalOverlay = document.getElementById('modalOverlay');
+  
+  if (modalClose) {
+    modalClose.addEventListener('click', hideModal);
+  }
+  
+  if (modalOverlay) {
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) {
+        hideModal();
+      }
+    });
+  }
+  
+  // Filter chips
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      const filter = e.target.dataset.filter;
+      const sort = e.target.dataset.sort;
+      
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      e.target.classList.add('active');
+      
+      if (filter) {
+        filterProducts(filter);
+      }
+      
+      if (sort) {
+        sortProducts(sort);
+      }
     });
   });
-  return wrap;
-}
-
-// Cart
-function addToCart(id, qty=1){
-  const p = state.products.find(x=>x.id===id); if(!p) return;
-  const item = state.cart.find(x=>x.id===id);
-  if(item) item.qty += qty; else state.cart.push({ id, qty, price: p.price });
-  setBadgeCounts(); persist();
-  microToast(`Added to cart`);
-  pulseCart();
-}
-function addToWishlist(id){
-  if(!state.wishlist.includes(id)) state.wishlist.push(id);
-  setBadgeCounts(); persist(); microToast(`Added to wishlist`);
-}
-function removeFromCart(id){
-  state.cart = state.cart.filter(x=>x.id!==id); setBadgeCounts(); persist();
-}
-
-function renderCart(){
-  const box = document.createElement("div");
-  const items = state.cart.map(ci=>{
-    const p = state.products.find(x=>x.id===ci.id);
-    return `
-      <div class="card glass" style="margin-bottom:10px">
-        <div class="card-body" style="display:flex;gap:12px;align-items:center">
-          <img src="${p.images[0]}" alt="${p.title}" style="width:88px;height:88px;object-fit:cover;border-radius:12px"/>
-          <div style="flex:1">
-            <div class="card-title">${p.title}</div>
-            <div class="price">${currency(p.price)}</div>
-            <div>
-              <button class="chip qty" data-id="${p.id}" data-d="-1">-</button>
-              <span style="padding:0 8px">${ci.qty}</span>
-              <button class="chip qty" data-id="${p.id}" data-d="1">+</button>
-              <button class="chip remove" data-id="${p.id}" style="margin-left:8px;color:#fff;background:#ef4444">Remove</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join("");
-  const total = state.cart.reduce((s,ci)=> s + ci.qty * (state.products.find(p=>p.id===ci.id)?.price||0), 0);
-  box.innerHTML = `
-    <h4>Your Cart</h4>
-    ${items || "<p>Your cart is empty.</p>"}
-    <div class="p-section">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <strong>Total</strong> <strong>${currency(total)}</strong>
-      </div>
-      <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn ghost" id="continueShop">Continue</button>
-        <button class="btn primary" id="goCheckout">Checkout</button>
-      </div>
-    </div>
-  `;
-  box.addEventListener("click", (e)=>{
-    const t = e.target.closest("button"); if(!t) return;
-    if(t.classList.contains("qty")){
-      const id=t.dataset.id, d=+t.dataset.d;
-      const it=state.cart.find(x=>x.id===id); if(!it) return;
-      it.qty = Math.max(1, it.qty + d); persist(); openModal("Cart", renderCart()); setBadgeCounts();
+  
+  // Newsletter form
+  const newsletterForm = document.getElementById('newsletterForm');
+  if (newsletterForm) {
+    newsletterForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      showToast('Thank you for subscribing!', 'success');
+      newsletterForm.reset();
+    });
+  }
+  
+  // Event delegation for dynamic elements
+  document.addEventListener('click', (e) => {
+    // Add to cart
+    if (e.target.closest('.add-to-cart-btn')) {
+      const productId = e.target.closest('.add-to-cart-btn').dataset.id;
+      addToCart(productId);
     }
-    if(t.classList.contains("remove")){
-      removeFromCart(t.dataset.id); openModal("Cart", renderCart());
+    
+    // Wishlist
+    if (e.target.closest('.wishlist-btn')) {
+      const productId = e.target.closest('.wishlist-btn').dataset.id;
+      addToWishlist(productId);
     }
-    if(t.id==="continueShop"){ closeModal(); }
-    if(t.id==="goCheckout"){ openModal("Checkout", renderCheckout()); }
-  });
-  return box;
-}
-
-// Checkout & Order
-function renderCheckout(){
-  const box = document.createElement("div");
-  const addr = state.addresses[0];
-  const total = state.cart.reduce((s,ci)=> s + ci.qty * (state.products.find(p=>p.id===ci.id)?.price||0), 0);
-  box.innerHTML = `
-    <div class="p-section">
-      <h4>Delivery Address</h4>
-      ${addr ? `
-        <p>${addr.name}, ${addr.line1}, ${addr.city} ${addr.pin}, ${addr.phone}</p>
-        <button class="chip" id="changeAddr">Change</button>
-      ` : `
-        <p>No address saved.</p>
-        <button class="chip" id="addAddr">Add Address</button>
-      `}
-    </div>
-    <div class="p-section">
-      <h4>Payment</h4>
-      <label><input type="radio" name="pay" value="cod" checked/> Cash on Delivery</label>
-      <label style="margin-left:12px"><input type="radio" name="pay" value="card"/> Card (mock)</label>
-    </div>
-    <div class="p-section">
-      <h4>Review Items</h4>
-      ${state.cart.map(ci=>{
-        const p = state.products.find(x=>x.id===ci.id);
-        return `<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
-          <img src="${p.images[0]}" alt="${p.title}" style="width:56px;height:56px;border-radius:10px;object-fit:cover"/>
-          <div style="flex:1">${p.title}</div>
-          <div>× ${ci.qty}</div>
-          <div>${currency(p.price*ci.qty)}</div>
-        </div>`;
-      }).join("")}
-      <div style="display:flex;justify-content:space-between;margin-top:8px">
-        <strong>Total</strong><strong>${currency(total)}</strong>
-      </div>
-      <div style="margin-top:10px;display:flex;justify-content:flex-end">
-        <button class="btn primary" id="placeOrder">Place Order</button>
-      </div>
-    </div>
-  `;
-  box.addEventListener("click",(e)=>{
-    const t = e.target;
-    if(t.id==="addAddr" || t.id==="changeAddr"){ openModal("Add Address", renderAddressForm()); }
-    if(t.id==="placeOrder"){
-      if(state.cart.length===0){ microToast("Cart is empty"); return; }
-      const orderId = "O" + Math.floor(Math.random()*1e6);
-      const items = state.cart.map(ci=>({...ci}));
-      const now = new Date().toISOString();
-      state.orders.unshift({
-        id: orderId, date: now, items,
-        total: items.reduce((s,i)=> s + i.qty * (state.products.find(p=>p.id===i.id)?.price||0), 0),
-        status: "Processing"
-      });
-      state.cart = []; persist(); setBadgeCounts();
-      openModal("Order Placed", renderOrderPlaced(orderId));
+    
+    // Compare
+    if (e.target.closest('.compare-btn')) {
+      const productId = e.target.closest('.compare-btn').dataset.id;
+      addToCompare(productId);
+    }
+    
+    // Quick view
+    if (e.target.closest('.quick-view-btn')) {
+      const productId = e.target.closest('.quick-view-btn').dataset.id;
+      showProductDetail(productId);
+    }
+    
+    // Product card click (for quick view)
+    if (e.target.closest('.product-card') && !e.target.closest('button')) {
+      const card = e.target.closest('.product-card');
+      const productId = card.querySelector('[data-id]')?.dataset.id;
+      if (productId) {
+        showProductDetail(productId);
+      }
+    }
+    
+    // Category cards
+    if (e.target.closest('.category-card')) {
+      const category = e.target.closest('.category-card').dataset.category;
+      showToast(`Showing ${category} products`, 'success');
+    }
+    
+    // Route navigation
+    if (e.target.closest('[data-route]')) {
+      const route = e.target.closest('[data-route]').dataset.route;
+      if (route === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        hideModal();
+        if (mobileSidebar) mobileSidebar.classList.remove('active');
+      }
     }
   });
-  return box;
+};
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
 }
-
-function renderOrderPlaced(orderId){
-  const box = document.createElement("div");
-  box.innerHTML = `
-    <div class="p-section">
-      <h3>Thank you!</h3>
-      <p>Your order <strong>${orderId}</strong> has been placed. Track it from Orders.</p>
-      <div style="display:flex;gap:8px">
-        <button class="btn primary" id="toOrders">Go to Orders</button>
-        <button class="btn ghost" id="close">Close</button>
-      </div>
-    </div>
-  `;
-  box.addEventListener("click",(e)=>{
-    if(e.target.id==="toOrders"){ closeModal(); showOrders(); }
-    if(e.target.id==="close"){ closeModal(); }
-  });
-  return box;
-}
-
-// Address form
-function renderAddressForm(){
-  const box = document.createElement("form");
-  box.className = "p-section";
-  box.innerHTML = `
-    <div style="display:grid;gap:8px">
-      <input class="glass" placeholder="Full name" required name="name"/>
-      <input class="glass" placeholder="Phone" required name="phone"/>
-      <input class="glass" placeholder="Address line 1" required name="line1"/>
-      <input class="glass" placeholder="City" required name="city"/>
-      <input class="glass" placeholder="PIN code" required name="pin"/>
-      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px">
-        <button class="btn ghost" type="button" id="cancel">Cancel</button>
-        <button class="btn primary" type="submit">Save</button>
-      </div>
-    </div>
-  `;
-  box.addEventListener("click",(e)=>{ if(e.target.id==="cancel") closeModal(); });
-  box.addEventListener("submit",(e)=>{
-    e.preventDefault();
-    const fd = new FormData(box);
-    state.addresses = [{ name: fd.get("name"), phone: fd.get("phone"), line1: fd.get("line1"), city: fd.get("city"), pin: fd.get("pin") }];
-    persist(); microToast("Address saved"); openModal("Checkout", renderCheckout());
-  });
-  return box;
-}
-
-// Orders, Wishlist, Profile
-function showOrders(){
-  const c = document.createElement("div");
-  c.innerHTML = `
-    <div class="p-section">
-      <h3>Your Orders</h3>
-      ${state.orders.length===0 ? "<p>No orders yet.</p>" : ""}
-      ${state.orders.map(o=>`
-        <div class="card glass" style="margin:10px 0">
-          <div class="card-body">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div><strong>${o.id}</strong> • ${new Date(o.date).toLocaleString()}</div>
-              <div><strong>${o.status}</strong></div>
-            </div>
-            ${o.items.map(ci=>{
-              const p = state.products.find(x=>x.id===ci.id);
-              return `<div style="display:flex;gap:10px;align-items:center;margin-top:8px">
-                <img src="${p.images[0]}" alt="${p.title}" style="width:48px;height:48px;border-radius:10px;object-fit:cover"/>
-                <div style="flex:1">${p.title}</div>
-                <div>× ${ci.qty}</div>
-                <div>${currency(p.price*ci.qty)}</div>
-                <button class="chip return" data-id="${o.id}" data-p="${p.id}" style="margin-left:8px">Return</button>
-              </div>`;
-            }).join("")}
-            <div style="display:flex;justify-content:flex-end;margin-top:8px"><strong>Total: ${currency(o.total)}</strong></div>
-          </div>
-        </div>
-      `).join("")}
-    </div>
-  `;
-  openModal("Orders", c);
-  c.addEventListener("click",(e)=>{
-    const t = e.target.closest(".return");
-    if(t){ microToast("Return initiated (mock)"); }
-  });
-}
-
-function showWishlist(){
-  const container = document.createElement("div");
-  const items = state.wishlist.map(id=>state.products.find(p=>p.id===id)).filter(Boolean);
-  container.innerHTML = `
-    <h3>Wishlist</h3>
-    ${items.length===0 ? "<p>No items in wishlist.</p>" : ""}
-    <div class="grid products">
-      ${items.map(p=>`
-        <article class="card glass">
-          <div class="card-media"><img src="${p.images[0]}" alt="${p.title}" /></div>
-          <div class="card-body">
-            <div class="card-title">${p.title}</div>
-            <div class="price">${currency(p.price)}</div>
-          </div>
-          <div class="card-actions">
-            <button class="btn add" data-id="${p.id}"><span class="i i-cart"></span>Add</button>
-            <button class="chip" data-view="${p.id}">View</button>
-          </div>
-        </article>
-      `).join("")}
-    </div>
-  `;
-  openModal("Wishlist", container);
-}
-
-function showProfile(){
-  const box = document.createElement("div");
-  const u = state.user;
-  const addr = state.addresses[0];
-  box.innerHTML = `
-    <div class="p-section">
-      <h4>Account</h4>
-      ${u ? `<p>Signed in as <strong>${u.name}</strong></p>` : `<p>Not signed in.</p>`}
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${u ? `<button class="btn ghost" id="logout">Sign out</button>` : `<button class="btn primary" id="login">Sign in</button>`}
-        <button class="btn ghost" id="addr">Manage Addresses</button>
-      </div>
-    </div>
-    <div class="p-section">
-      <h4>Saved Address</h4>
-      ${addr ? `<p>${addr.name}, ${addr.line1}, ${addr.city} ${addr.pin}, ${addr.phone}</p>` : `<p>No address saved.</p>`}
-    </div>
-  `;
-  openModal("Account", box);
-  box.addEventListener("click",(e)=>{
-    if(e.target.id==="login") openModal("Sign in", renderAuth());
-    if(e.target.id==="logout"){ state.user=null; persist(); microToast("Signed out"); closeModal(); }
-    if(e.target.id==="addr") openModal("Add Address", renderAddressForm());
-  });
-}
-
-function renderAuth(){
-  const box = document.createElement("form");
-  box.className = "p-section";
-  box.innerHTML = `
-    <input class="glass" placeholder="Name" required name="name"/>
-    <input class="glass" placeholder="Email" required type="email" name="email"/>
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
-      <button class="btn ghost" type="button" id="cancel">Cancel</button>
-      <button class="btn primary" type="submit">Continue</button>
-    </div>
-  `;
-  box.addEventListener("click",(e)=>{ if(e.target.id==="cancel") closeModal(); });
-  box.addEventListener("submit",(e)=>{
-    e.preventDefault();
-    const fd = new FormData(box);
-    state.user = { name: fd.get("name"), email: fd.get("email") };
-    persist(); microToast("Signed in"); closeModal();
-  });
-  return box;
-}
-
-// Search + suggestions + tags
-function showSuggestions(q){
-  const sug = qs("#searchSuggest");
-  if(!q){ sug.classList.add("hidden"); return; }
-  const inx = state.suggestions.filter(s=>s.toLowerCase().includes(q.toLowerCase())).slice(0,7);
-  sug.innerHTML = inx.map(s=>`<div class="item" role="option">${s}</div>`).join("");
-  sug.classList.remove("hidden");
-}
-function mountTags(){
-  qs("#searchTags").innerHTML = state.tags.map(t=>`<button class="chip pill" data-tag="${t}">${t}</button>`).join("");
-}
-function searchProducts(q, tag=""){
-  const s = q.toLowerCase();
-  return state.products.filter(p => {
-    const hit = (`${p.title} ${p.brand} ${p.category}`).toLowerCase().includes(s);
-    const tagHit = tag ? (`${p.title} ${p.brand} ${p.category}`).toLowerCase().includes(tag.toLowerCase()) : true;
-    return hit && tagHit;
-  });
-}
-function openSearch(q=""){
-  const box = document.createElement("div");
-  const results = searchProducts(q);
-  box.innerHTML = `
-    <div class="p-section">
-      <h3>Search</h3>
-      <div style="display:grid;gap:10px">
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <input id="fText" class="glass" placeholder="Search..." value="${q}"/>
-          <select id="fCat" class="glass">
-            <option value="">All Categories</option>
-            ${[...new Set(state.products.map(p=>p.category))].map(c=>`<option>${c}</option>`).join("")}
-          </select>
-          <select id="fSort" class="glass">
-            <option value="">Sort</option>
-            <option value="rating">Rating</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-          </select>
-          <button class="btn pill" id="apply">Apply</button>
-        </div>
-        <div class="grid products" id="fGrid">${results.map(p=>productCard(p).outerHTML).join("")}</div>
-      </div>
-    </div>
-  `;
-  openModal("Search", box);
-  box.addEventListener("click",(e)=>{
-    const t = e.target;
-    if(t.id==="apply"){
-      const text = qs("#fText", box).value.trim().toLowerCase();
-      const cat = qs("#fCat", box).value;
-      const sort = qs("#fSort", box).value;
-      let arr = state.products.filter(p => (!text || (`${p.title} ${p.brand} ${p.category}`).toLowerCase().includes(text)) && (!cat || p.category===cat));
-      if(sort==="rating") arr.sort((a,b)=>b.rating - a.rating);
-      if(sort==="price-asc") arr.sort((a,b)=>a.price - b.price);
-      if(sort==="price-desc") arr.sort((a,b)=>b.price - a.price);
-      qs("#fGrid", box).innerHTML = arr.map(p=>productCard(p).outerHTML).join("");
-    }
-  });
-}
-
-// Micro toasts and feedback
-function microToast(text){
-  const t = document.createElement("div");
-  t.textContent = text;
-  t.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(10px);background:#0b1220;color:#fff;padding:10px 14px;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.25);z-index:100;opacity:0;transition:opacity 220ms "+EASE+", transform 220ms "+EASE;
-  document.body.appendChild(t);
-  requestAnimationFrame(()=>{ t.style.opacity=1; t.style.transform="translateX(-50%) translateY(0)"; });
-  setTimeout(()=>{ t.style.opacity=0; t.style.transform="translateX(-50%) translateY(10px)"; setTimeout(()=>t.remove(),240); }, 1500);
-}
-function pulseCart(){
-  const btn = qs("#cartBtn");
-  btn.animate([{transform:"scale(1)"},{transform:"scale(1.08)"},{transform:"scale(1)"}], {duration:360, easing:EASE});
-}
-
-// Event wiring
-function wire(){
-  restore();
-  renderGrid(state.products);
-  renderReco();
-  setBadgeCounts();
-  mountTags();
-
-  // header scroll minify
-  let lastY=0;
-  document.addEventListener("scroll", ()=>{
-    const y = window.scrollY;
-    const hdr = qs(".header");
-    if(y>12 && y>lastY) hdr.classList.add("scrolled"); else if(y<8) hdr.classList.remove("scrolled");
-    lastY = y;
-  });
-
-  // header actions
-  qs("#navToggle").addEventListener("click", ()=>{ qs("#sideDrawer").classList.add("open"); qs("#sideDrawer").setAttribute("aria-hidden","false"); });
-  qs("#closeDrawer").addEventListener("click", ()=>{ qs("#sideDrawer").classList.remove("open"); qs("#sideDrawer").setAttribute("aria-hidden","true"); });
-
-  qs("#wishlistBtn").addEventListener("click", showWishlist);
-  qs("#cartBtn").addEventListener("click", ()=> openModal("Cart", renderCart()));
-  qs("#userBtn").addEventListener("click", showProfile);
-
-  // global delegation
-  document.addEventListener("click", (e)=>{
-    const add = e.target.closest(".btn.add, .add-mini");
-    const heart = e.target.closest(".btn.heart");
-    const view = e.target.closest("[data-view]");
-    const sort = e.target.closest("[data-sort]");
-    const route = e.target.closest("[data-route]");
-    const tag = e.target.closest("[data-tag]");
-    if(add){ addToCart(add.dataset.id); }
-    if(heart){ addToWishlist(heart.dataset.id); }
-    if(view){ const p = state.products.find(x=>x.id===view.dataset.view); if(p) openModal("Product", productDetail(p)); }
-    if(sort){ sortProducts(sort.dataset.sort); }
-    if(route){
-      const r = route.dataset.route;
-      if(r==="search") openSearch(qs("#searchInput").value.trim());
-      if(r==="orders") showOrders();
-      if(r==="wishlist") showWishlist();
-      if(r==="profile") showProfile();
-      if(r==="help") openModal("Help & Support", helpPanel());
-      if(r==="seller") openModal("Seller Hub (Preview)", sellerPanel());
-      if(r==="home") closeModal();
-    }
-    if(tag){ qs("#searchInput").value = tag.dataset.tag; openSearch(tag.dataset.tag); }
-  });
-
-  // search
-  qs("#searchInput").addEventListener("input", (e)=> showSuggestions(e.target.value.trim()));
-  qs("#searchInput").addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); openSearch(e.target.value.trim()); qs("#searchSuggest").classList.add("hidden"); }});
-  qs("#searchBtn").addEventListener("click", ()=> openSearch(qs("#searchInput").value.trim()));
-  qs("#searchSuggest").addEventListener("click",(e)=>{
-    const item = e.target.closest(".item");
-    if(item){ qs("#searchInput").value = item.textContent; openSearch(item.textContent); qs("#searchSuggest").classList.add("hidden"); }
-  });
-
-  // modal
-  qs("#closeModal").addEventListener("click", closeModal);
-  qs("#modal").addEventListener("click",(e)=>{ if(e.target.id==="modal") closeModal(); });
-
-  // focus outlines
-  qsa("button, a, input, select").forEach(el=> el.classList.add("focus-ring"));
-}
-
-// Help and Seller panels
-function helpPanel(){
-  const box = document.createElement("div");
-  box.innerHTML = `
-    <div class="p-section">
-      <h4>Customer Care</h4>
-      <p>Chatbot and ticketing UI can plug here. Typical flows: order issues, returns, refunds.</p>
-      <button class="btn ghost">Open Chat (mock)</button>
-    </div>
-    <div class="p-section">
-      <h4>Return Policy</h4>
-      <p>Easy returns within 10 days for most items. Pickup scheduling and instant refunds (mock).</p>
-    </div>
-  `;
-  return box;
-}
-function sellerPanel(){
-  const box = document.createElement("div");
-  box.innerHTML = `
-    <div class="p-section">
-      <h4>Seller Hub (Preview)</h4>
-      <ul>
-        <li>Dashboard with orders, revenue, and performance score</li>
-        <li>Inventory & listings with bulk upload</li>
-        <li>Promotions, coupons, and ads</li>
-        <li>Analytics with low-stock alerts</li>
-      </ul>
-      <p class="small">UI preview ready to connect to APIs.</p>
-    </div>
-  `;
-  return box;
-}
-
-document.addEventListener("DOMContentLoaded", wire);

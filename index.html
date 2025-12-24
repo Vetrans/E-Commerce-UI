@@ -3,188 +3,343 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ultra Glass — E‑commerce</title>
-  <meta name="theme-color" content="#ffffff" />
+  <title>NexaMart – Premium Shopping Experience</title>
+  <meta name="theme-color" content="#0f172a" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=General+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to content</a>
-
-  <!-- Background field -->
-  <div class="bg">
-    <div class="gradient-layer"></div>
-    <div class="orbs">
-      <span class="orb orb-a"></span>
-      <span class="orb orb-b"></span>
-      <span class="orb orb-c"></span>
-      <span class="orb orb-d"></span>
+  <!-- Animated Background -->
+  <div class="bg-canvas">
+    <div class="mesh-gradient"></div>
+    <div class="floating-shapes">
+      <span class="shape shape-1"></span>
+      <span class="shape shape-2"></span>
+      <span class="shape shape-3"></span>
+      <span class="shape shape-4"></span>
     </div>
-    <div class="grain"></div>
+    <div class="noise-texture"></div>
   </div>
 
-  <!-- Header -->
-  <header class="glass header">
-    <div class="header-left">
-      <button class="icon-btn" id="navToggle" aria-label="Open menu"><span class="i i-menu"></span></button>
-      <a href="#" class="brand">
-        <span class="brand-badge">◎</span>
-        <span class="brand-name">UltraGlass</span>
-      </a>
+  <!-- Top Banner -->
+  <div class="top-banner">
+    <div class="banner-content">
+      <span class="banner-icon">⚡</span>
+      <p>Free shipping on orders above ₹999 | Extra 10% off on first purchase</p>
+      <button class="banner-close" aria-label="Close banner">×</button>
     </div>
+  </div>
 
-    <div class="header-center">
-      <div class="search glass">
-        <div class="chip pill" id="allCatChip">All</div>
-        <input id="searchInput" type="search" placeholder="Search products, brands, and categories…" aria-label="Search" autocomplete="off" />
-        <button id="searchBtn" class="btn primary">
-          <span class="i i-search"></span><span>Search</span>
+  <!-- Main Header -->
+  <header class="main-header">
+    <div class="header-container">
+      <div class="header-top">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">
+          <span></span>
+          <span></span>
+          <span></span>
         </button>
-        <div id="searchSuggest" class="suggest glass hidden" role="listbox" aria-label="Suggestions"></div>
-      </div>
-      <div class="search-tags" id="searchTags"></div>
-    </div>
+        
+        <a href="#" class="logo" data-route="home">
+          <div class="logo-icon">
+            <svg viewBox="0 0 40 40" fill="none">
+              <path d="M20 5L35 12.5V27.5L20 35L5 27.5V12.5L20 5Z" stroke="currentColor" stroke-width="2"/>
+              <circle cx="20" cy="20" r="6" fill="currentColor"/>
+            </svg>
+          </div>
+          <span class="logo-text">NexaMart</span>
+        </a>
 
-    <nav class="header-right">
-      <button class="icon-btn" id="wishlistBtn" aria-label="Wishlist"><span class="i i-heart"></span><span class="badge" id="wishCount">0</span></button>
-      <button class="icon-btn" id="cartBtn" aria-label="Cart"><span class="i i-cart"></span><span class="badge" id="cartCount">0</span></button>
-      <button class="icon-btn" id="userBtn" aria-label="Account"><span class="i i-user"></span></button>
-    </nav>
+        <nav class="main-nav" id="mainNav">
+          <a href="#" data-category="electronics">Electronics</a>
+          <a href="#" data-category="fashion">Fashion</a>
+          <a href="#" data-category="home">Home & Living</a>
+          <a href="#" data-category="beauty">Beauty</a>
+          <a href="#" data-category="sports">Sports</a>
+        </nav>
+
+        <div class="header-actions">
+          <div class="search-trigger" id="searchTrigger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <span>Search</span>
+          </div>
+          
+          <button class="action-btn" id="compareBtn" aria-label="Compare">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4"/>
+            </svg>
+            <span class="action-badge" id="compareCount">0</span>
+          </button>
+
+          <button class="action-btn" id="wishlistBtn" aria-label="Wishlist">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+            </svg>
+            <span class="action-badge" id="wishCount">0</span>
+          </button>
+
+          <button class="action-btn cart-btn" id="cartBtn" aria-label="Cart">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 2a1 1 0 011 1v1h4V3a1 1 0 112 0v1h1a2 2 0 012 2v3H4V6a2 2 0 012-2h1V3a1 1 0 011-1zm11 7v11a2 2 0 01-2 2H6a2 2 0 01-2-2V9h16z"/>
+            </svg>
+            <span class="action-badge" id="cartCount">0</span>
+          </button>
+
+          <button class="action-btn user-btn" id="userBtn" aria-label="Account">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-bar" id="searchBar">
+        <div class="search-input-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input type="search" id="searchInput" placeholder="Search for products, brands, categories..." autocomplete="off"/>
+          <button class="search-close" id="searchClose">×</button>
+        </div>
+        <div class="search-suggestions" id="searchSuggestions"></div>
+        <div class="trending-searches">
+          <span class="trend-label">Trending:</span>
+          <div class="trend-tags" id="trendTags"></div>
+        </div>
+      </div>
+    </div>
   </header>
 
-  <!-- Side Drawer -->
-  <aside class="side-drawer glass" id="sideDrawer" aria-hidden="true">
-    <div class="drawer-head">
-      <h3>Explore</h3>
-      <button class="icon-btn" id="closeDrawer" aria-label="Close"><span class="i i-close"></span></button>
+  <!-- Mobile Sidebar -->
+  <aside class="mobile-sidebar" id="mobileSidebar">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+      <button class="sidebar-close" id="sidebarClose">×</button>
     </div>
-    <ul class="drawer-links">
-      <li><a data-route="home" href="#">Home</a></li>
-      <li><a data-route="search" href="#">Categories</a></li>
-      <li><a data-route="orders" href="#">Orders</a></li>
-      <li><a data-route="wishlist" href="#">Wishlist</a></li>
-      <li><a data-route="profile" href="#">Account</a></li>
-      <li><a data-route="help" href="#">Help</a></li>
-      <li class="separator"></li>
-      <li><a data-route="seller" href="#">Sell on UltraGlass</a></li>
-    </ul>
+    <nav class="sidebar-nav">
+      <a href="#" data-route="home">Home</a>
+      <a href="#" data-category="electronics">Electronics</a>
+      <a href="#" data-category="fashion">Fashion</a>
+      <a href="#" data-category="home">Home & Living</a>
+      <a href="#" data-category="beauty">Beauty</a>
+      <a href="#" data-category="sports">Sports</a>
+      <div class="nav-divider"></div>
+      <a href="#" data-route="orders">My Orders</a>
+      <a href="#" data-route="wishlist">Wishlist</a>
+      <a href="#" data-route="profile">Account</a>
+      <a href="#" data-route="help">Help Center</a>
+    </nav>
   </aside>
 
-  <main id="main">
-    <!-- Hero -->
-    <section class="hero">
-      <div class="hero-wrap glass">
-        <div class="hero-left">
-          <h1 class="display">Shopping, re‑imagined in <span class="accent">glass</span></h1>
-          <p class="lede">Crystal‑clear surfaces, gentle depth, and delightful motion make browsing feel effortless and premium.</p>
-          <div class="hero-cta">
-            <button class="btn primary" data-route="search">Browse Deals</button>
-            <button class="btn ghost" data-route="home">New & Trending</button>
+  <main class="main-content">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-container">
+        <div class="hero-content">
+          <span class="hero-badge">New Collection 2025</span>
+          <h1 class="hero-title">
+            Elevate Your<br/>
+            <span class="gradient-text">Shopping Experience</span>
+          </h1>
+          <p class="hero-subtitle">Discover premium products with unbeatable prices and lightning-fast delivery</p>
+          <div class="hero-cta-group">
+            <button class="cta-primary" data-route="shop">Shop Now</button>
+            <button class="cta-secondary" data-route="deals">View Deals</button>
           </div>
-          <div class="hero-strip">
-            <span class="chip pill soft">Fast delivery</span>
-            <span class="chip pill soft">Easy returns</span>
-            <span class="chip pill soft">Secure checkout</span>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <strong>50K+</strong>
+              <span>Products</span>
+            </div>
+            <div class="stat-item">
+              <strong>100K+</strong>
+              <span>Happy Customers</span>
+            </div>
+            <div class="stat-item">
+              <strong>500+</strong>
+              <span>Brands</span>
+            </div>
           </div>
         </div>
-        <div class="hero-right">
-          <div class="hero-card glass depth">
-            <div class="shine"></div>
-            <img alt="Hero product" src="https://picsum.photos/seed/ultraglass_hero/900/700" />
+        <div class="hero-visual">
+          <div class="product-showcase">
+            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=800&fit=crop" alt="Featured Product" loading="eager"/>
+            <div class="showcase-badge">
+              <span>Limited Edition</span>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Promo rail -->
-    <section class="rail promos">
-      <article class="promo glass raise">
-        <div>
-          <h3>Lightning Deals</h3>
-          <p>Jaw‑dropping prices, limited time only.</p>
+    <!-- Category Grid -->
+    <section class="category-section">
+      <div class="section-container">
+        <div class="section-header">
+          <h2>Shop by Category</h2>
+          <button class="view-all" data-route="categories">View All →</button>
         </div>
-        <button class="chip">Shop</button>
-      </article>
-      <article class="promo glass raise">
-        <div>
-          <h3>Style Edit</h3>
-          <p>Premium fits, free returns.</p>
-        </div>
-        <button class="chip">Explore</button>
-      </article>
-      <article class="promo glass raise">
-        <div>
-          <h3>Home Upgrades</h3>
-          <p>Essentials for every space.</p>
-        </div>
-        <button class="chip">Browse</button>
-      </article>
+        <div class="category-grid" id="categoryGrid"></div>
+      </div>
     </section>
 
-    <!-- Featured products -->
-    <section class="section">
-      <div class="section-head">
-        <h2>Featured</h2>
-        <div class="section-actions">
-          <button class="chip pill" data-sort="trending">Trending</button>
-          <button class="chip pill" data-sort="rating">Top Rated</button>
-          <button class="chip pill" data-sort="price-asc">Price ↑</button>
-          <button class="chip pill" data-sort="price-desc">Price ↓</button>
+    <!-- Flash Deals -->
+    <section class="deals-section">
+      <div class="section-container">
+        <div class="deals-header">
+          <div>
+            <h2>⚡ Flash Deals</h2>
+            <p>Limited time offers ending soon</p>
+          </div>
+          <div class="countdown-timer" id="dealTimer">
+            <div class="timer-block">
+              <span id="hours">00</span>
+              <label>Hours</label>
+            </div>
+            <div class="timer-block">
+              <span id="minutes">00</span>
+              <label>Minutes</label>
+            </div>
+            <div class="timer-block">
+              <span id="seconds">00</span>
+              <label>Seconds</label>
+            </div>
+          </div>
+        </div>
+        <div class="deals-carousel" id="dealsCarousel"></div>
+      </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="products-section">
+      <div class="section-container">
+        <div class="section-header">
+          <h2>Featured Products</h2>
+          <div class="filter-chips">
+            <button class="filter-chip active" data-filter="all">All</button>
+            <button class="filter-chip" data-filter="trending">Trending</button>
+            <button class="filter-chip" data-filter="top-rated">Top Rated</button>
+            <button class="filter-chip" data-filter="new">New Arrivals</button>
+            <button class="filter-chip" data-sort="price-low">Price: Low to High</button>
+            <button class="filter-chip" data-sort="price-high">Price: High to Low</button>
+          </div>
+        </div>
+        <div class="products-grid" id="productsGrid"></div>
+        <div class="load-more-wrapper">
+          <button class="load-more-btn" id="loadMoreBtn">Load More Products</button>
         </div>
       </div>
-      <div id="productGrid" class="grid products"></div>
     </section>
 
-    <!-- Recommended rail -->
-    <section class="section">
-      <div class="section-head"><h2>Recommended</h2></div>
-      <div id="recoRail" class="rail cards"></div>
-    </section>
-
-    <!-- Modal -->
-    <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modal-panel glass depth">
-        <div class="modal-head">
-          <h3 id="modalTitle">Title</h3>
-          <button class="icon-btn" id="closeModal" aria-label="Close"><span class="i i-close"></span></button>
-        </div>
-        <div id="modalBody" class="modal-body"></div>
+    <!-- Brands Showcase -->
+    <section class="brands-section">
+      <div class="section-container">
+        <h2>Top Brands</h2>
+        <div class="brands-grid" id="brandsGrid"></div>
       </div>
-    </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter-section">
+      <div class="newsletter-container">
+        <div class="newsletter-content">
+          <h2>Stay Updated</h2>
+          <p>Subscribe to get exclusive deals and early access to new products</p>
+          <form class="newsletter-form" id="newsletterForm">
+            <input type="email" placeholder="Enter your email" required/>
+            <button type="submit">Subscribe</button>
+          </form>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer class="footer glass">
-    <div class="footer-grid">
-      <div>
-        <h4>UltraGlass</h4>
-        <p>Beautifully fast shopping UI.</p>
+  <!-- Footer -->
+  <footer class="main-footer">
+    <div class="footer-container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div class="footer-logo">
+            <div class="logo-icon">
+              <svg viewBox="0 0 40 40" fill="none">
+                <path d="M20 5L35 12.5V27.5L20 35L5 27.5V12.5L20 5Z" stroke="currentColor" stroke-width="2"/>
+                <circle cx="20" cy="20" r="6" fill="currentColor"/>
+              </svg>
+            </div>
+            <span>NexaMart</span>
+          </div>
+          <p>Your trusted destination for premium products and exceptional service.</p>
+          <div class="social-links">
+            <a href="#" aria-label="Facebook">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+            </a>
+            <a href="#" aria-label="Twitter">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+            </a>
+            <a href="#" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" fill="none" stroke="#0f172a" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.5" fill="#0f172a"/></svg>
+            </a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Shop</h4>
+          <ul>
+            <li><a href="#" data-category="electronics">Electronics</a></li>
+            <li><a href="#" data-category="fashion">Fashion</a></li>
+            <li><a href="#" data-category="home">Home & Living</a></li>
+            <li><a href="#" data-category="beauty">Beauty</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Support</h4>
+          <ul>
+            <li><a href="#" data-route="help">Help Center</a></li>
+            <li><a href="#" data-route="track">Track Order</a></li>
+            <li><a href="#" data-route="returns">Returns</a></li>
+            <li><a href="#" data-route="shipping">Shipping Info</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Account</h4>
+          <ul>
+            <li><a href="#" data-route="profile">My Account</a></li>
+            <li><a href="#" data-route="orders">Orders</a></li>
+            <li><a href="#" data-route="wishlist">Wishlist</a></li>
+            <li><a href="#" data-route="addresses">Addresses</a></li>
+          </ul>
+        </div>
       </div>
-      <div>
-        <h5>Help</h5>
-        <ul>
-          <li><a data-route="help" href="#">Customer Care</a></li>
-          <li><a data-route="help" href="#">Returns</a></li>
-          <li><a data-route="help" href="#">Shipping</a></li>
-        </ul>
-      </div>
-      <div>
-        <h5>Account</h5>
-        <ul>
-          <li><a data-route="orders" href="#">Orders</a></li>
-          <li><a data-route="wishlist" href="#">Wishlist</a></li>
-          <li><a data-route="profile" href="#">Addresses</a></li>
-        </ul>
-      </div>
-      <div>
-        <h5>Sell</h5>
-        <ul>
-          <li><a data-route="seller" href="#">Seller Hub (Preview)</a></li>
-        </ul>
+      <div class="footer-bottom">
+        <p>&copy; 2025 NexaMart. All rights reserved.</p>
+        <div class="footer-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">Cookie Policy</a>
+        </div>
       </div>
     </div>
-    <p class="small">© 2025 UltraGlass</p>
   </footer>
+
+  <!-- Universal Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-container" id="modalContainer">
+      <button class="modal-close" id="modalClose">×</button>
+      <div class="modal-content" id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Quick View Portal -->
+  <div class="quick-view-portal" id="quickViewPortal"></div>
 
   <script src="app.js"></script>
 </body>
